@@ -763,8 +763,8 @@ class TestInstallArchiveMemberValidation:
         member.size = len(payload)
         archive, checksums = self._write_archive(tmp_path, member, payload)
 
-        hermes_home = tmp_path / "hermes-home"
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        hermes_home = tmp_path / "noru-home"
+        monkeypatch.setenv("NORU_HOME", str(hermes_home))
         with patch("tools.tirith_security._download_file",
                    side_effect=self._download_side_effect(archive, checksums)):
             path, reason = _install_tirith(log_failures=False)
@@ -790,8 +790,8 @@ class TestInstallArchiveMemberValidation:
         member.linkname = "/bin/sh"
         archive, checksums = self._write_archive(tmp_path, member)
 
-        hermes_home = tmp_path / "hermes-home"
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        hermes_home = tmp_path / "noru-home"
+        monkeypatch.setenv("NORU_HOME", str(hermes_home))
         with patch("tools.tirith_security._download_file",
                    side_effect=self._download_side_effect(archive, checksums)):
             path, reason = _install_tirith(log_failures=False)
@@ -1010,7 +1010,7 @@ class TestDiskFailureMarker:
         _tirith_mod._resolved_path = None
 
     def test_install_failed_recovers_from_hermes_bin(self):
-        """After _INSTALL_FAILED, manual install in HERMES_HOME/bin is picked up."""
+        """After _INSTALL_FAILED, manual install in NORU_HOME/bin is picked up."""
         from tools.tirith_security import _resolve_tirith_path, _INSTALL_FAILED
         import tempfile
         tmpdir = tempfile.mkdtemp()
@@ -1152,43 +1152,43 @@ class TestDiskFailureMarker:
 
 
 # ---------------------------------------------------------------------------
-# HERMES_HOME isolation
+# NORU_HOME isolation
 # ---------------------------------------------------------------------------
 
 class TestHermesHomeIsolation:
     def test_hermes_bin_dir_respects_hermes_home(self):
-        """_hermes_bin_dir must use HERMES_HOME, not hardcoded ~/.hermes."""
+        """_hermes_bin_dir must use NORU_HOME, not hardcoded ~/.hermes."""
         from tools.tirith_security import _hermes_bin_dir
         import tempfile
         tmpdir = tempfile.mkdtemp()
-        with patch.dict(os.environ, {"HERMES_HOME": tmpdir}):
+        with patch.dict(os.environ, {"NORU_HOME": tmpdir}):
             result = _hermes_bin_dir()
         assert result == os.path.join(tmpdir, "bin")
         assert os.path.isdir(result)
 
     def test_failure_marker_respects_hermes_home(self):
-        """_failure_marker_path must use HERMES_HOME, not hardcoded ~/.hermes."""
+        """_failure_marker_path must use NORU_HOME, not hardcoded ~/.hermes."""
         from tools.tirith_security import _failure_marker_path
-        with patch.dict(os.environ, {"HERMES_HOME": "/custom/hermes"}):
+        with patch.dict(os.environ, {"NORU_HOME": "/custom/hermes"}):
             result = _failure_marker_path()
         assert result == "/custom/hermes/.tirith-install-failed"
 
     def test_conftest_isolation_prevents_real_home_writes(self):
-        """The conftest autouse fixture sets HERMES_HOME; verify it's active."""
-        hermes_home = os.getenv("HERMES_HOME")
-        assert hermes_home is not None, "HERMES_HOME should be set by conftest"
+        """The conftest autouse fixture sets NORU_HOME; verify it's active."""
+        hermes_home = os.getenv("NORU_HOME")
+        assert hermes_home is not None, "NORU_HOME should be set by conftest"
         assert "hermes_test" in hermes_home, "Should point to test temp dir"
 
-    def test_get_hermes_home_fallback(self):
-        """Without HERMES_HOME set, falls back to the active OS home."""
-        from tools.tirith_security import _get_hermes_home
+    def test_get_noru_home_fallback(self):
+        """Without NORU_HOME set, falls back to the active OS home."""
+        from tools.tirith_security import _get_noru_home
         with patch.dict(os.environ, {}, clear=True):
-            # Remove HERMES_HOME entirely. With HOME also absent, expanduser
+            # Remove NORU_HOME entirely. With HOME also absent, expanduser
             # falls back to the account database; compute expected under the
             # same environment instead of after patch.dict restores HOME.
-            os.environ.pop("HERMES_HOME", None)
+            os.environ.pop("NORU_HOME", None)
             expected = os.path.join(os.path.expanduser("~"), ".hermes")
-            result = _get_hermes_home()
+            result = _get_noru_home()
         assert result == expected
 
 

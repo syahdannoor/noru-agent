@@ -842,7 +842,7 @@ def test_skill_installs_cleanly_under_skills_guard():
     # python_os_environ  — reads MIGRATION_JSON_OUTPUT to enable JSON output mode
     #                      (feature flag, not an env dump)
     # hermes_config_mod  — print statements in the post-migration summary that
-    #                      tell the user to *review* ~/.hermes/config.yaml;
+    #                      tell the user to *review* ~/.noru/config.yaml;
     #                      the script never writes to that file
     #
     # Accept "caution" or "safe" — just not "dangerous" from a *real* threat.
@@ -901,12 +901,12 @@ def test_rebrand_text_preserves_filesystem_path_casing():
     """
     mod = load_module()
     assert mod.rebrand_text("config is at ~/.openclaw/config.yaml") == \
-        "config is at ~/.hermes/config.yaml"
+        "config is at ~/.noru/config.yaml"
     assert mod.rebrand_text("use .openclaw directory") == "use .hermes directory"
     assert mod.rebrand_text("Path.home() / '.openclaw'") == "Path.home() / '.hermes'"
     # Sentence with both lowercase path and capitalized prose.
     assert mod.rebrand_text("openclaw config path: ~/.openclaw/") == \
-        "hermes config path: ~/.hermes/"
+        "hermes config path: ~/.noru/"
 
 
 def test_migrate_memory_rebrands_entries(tmp_path):
@@ -921,7 +921,7 @@ def test_migrate_memory_rebrands_entries(tmp_path):
         encoding="utf-8",
     )
 
-    target_root = tmp_path / "hermes"
+    target_root = tmp_path / "noru"
     target_root.mkdir()
     (target_root / "memories").mkdir()
 
@@ -952,7 +952,7 @@ def test_migrate_soul_rebrands_content(tmp_path):
     soul_md = workspace / "SOUL.md"
     soul_md.write_text("You are OpenClaw, an AI assistant made by SparkLab.", encoding="utf-8")
 
-    target_root = tmp_path / "hermes"
+    target_root = tmp_path / "noru"
     target_root.mkdir()
 
     migrator = mod.Migrator(

@@ -17,12 +17,12 @@ Or manually:
 
 ```bash
 hermes config set memory.provider supermemory
-echo 'SUPERMEMORY_API_KEY=***' >> ~/.hermes/.env
+echo 'SUPERMEMORY_API_KEY=***' >> ~/.noru/.env
 ```
 
 ## Config
 
-Config file: `$HERMES_HOME/supermemory.json`
+Config file: `$NORU_HOME/supermemory.json`
 
 | Key | Default | Description |
 |-----|---------|-------------|
@@ -79,7 +79,7 @@ For advanced setups (e.g. OpenClaw-style multi-workspace), you can enable custom
 
 ```json
 {
-  "container_tag": "hermes",
+  "container_tag": "noru",
   "enable_custom_container_tags": true,
   "custom_containers": ["project-alpha", "project-beta", "shared-knowledge"],
   "custom_container_instructions": "Use project-alpha for coding tasks, project-beta for research, and shared-knowledge for team-wide facts."

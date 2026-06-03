@@ -72,7 +72,7 @@ def _resolve_home_dir() -> str:
     """Return a stable HOME for child ACP processes."""
 
     try:
-        from hermes_constants import get_subprocess_home
+        from noru_constants import get_subprocess_home
 
         profile_home = get_subprocess_home()
         if profile_home:
@@ -98,7 +98,7 @@ def _resolve_home_dir() -> str:
         pass
 
     # Last resort: /tmp (writable on any POSIX system). Avoids crashing the
-    # subprocess with no HOME; callers can set HERMES_HOME explicitly if they
+    # subprocess with no HOME; callers can set NORU_HOME explicitly if they
     # need a different writable dir.
     return "/tmp"
 
@@ -558,7 +558,7 @@ class CopilotACPClient:
                         }
                     },
                     "clientInfo": {
-                        "name": "hermes-agent",
+                        "name": "noru-agent",
                         "title": "Hermes Agent",
                         "version": "0.0.0",
                     },

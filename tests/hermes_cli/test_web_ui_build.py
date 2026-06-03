@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 
-from hermes_cli.main import _web_ui_build_needed, _build_web_ui, _run_npm_install_deterministic
+from noru_cli.main import _web_ui_build_needed, _build_web_ui, _run_npm_install_deterministic
 
 
 def _touch(path: Path, offset: float = 0.0) -> None:
@@ -103,8 +103,8 @@ class TestBuildWebUISkipsWhenFresh:
         web_dir, dist_dir = _make_web_dir(tmp_path)
         _touch(dist_dir / ".vite" / "manifest.json")
 
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main.subprocess.run") as mock_run:
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main.subprocess.run") as mock_run:
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -115,9 +115,9 @@ class TestBuildWebUISkipsWhenFresh:
 
         mock_cp = __import__("subprocess").CompletedProcess([], 0, stdout=b"", stderr=b"")
         build_ok = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main.subprocess.run", return_value=mock_cp) as mock_run, \
-             patch("hermes_cli.main._run_with_idle_timeout", return_value=build_ok) as mock_idle:
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main.subprocess.run", return_value=mock_cp) as mock_run, \
+             patch("noru_cli.main._run_with_idle_timeout", return_value=build_ok) as mock_idle:
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -131,7 +131,7 @@ class TestBuildWebUISkipsWhenFresh:
         (web_dir / "package-lock.json").write_text("{}", encoding="utf-8")
 
         mock_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.subprocess.run", return_value=mock_cp) as mock_run:
+        with patch("noru_cli.main.subprocess.run", return_value=mock_cp) as mock_run:
             result = _run_npm_install_deterministic("/usr/bin/npm", web_dir)
 
         assert result.returncode == 0
@@ -151,9 +151,9 @@ class TestBuildWebUISkipsWhenFresh:
 
         install_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
         build_cp = __import__("subprocess").CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_cp), \
-             patch("hermes_cli.main._run_with_idle_timeout", return_value=build_cp) as mock_idle:
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main.subprocess.run", return_value=install_cp), \
+             patch("noru_cli.main._run_with_idle_timeout", return_value=build_cp) as mock_idle:
             result = _build_web_ui(web_dir)
 
         assert result is True
@@ -175,10 +175,10 @@ class TestBuildWebUIRetryAndStaleFallback:
         # build attempt 1: fail; build attempt 2: success.
         build_fail = Subprocess.CompletedProcess([], 1, stdout="EPERM", stderr="")
         build_ok = Subprocess.CompletedProcess([], 0, stdout="", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._time.sleep") as mock_sleep, \
-             patch("hermes_cli.main.subprocess.run", return_value=install_ok), \
-             patch("hermes_cli.main._run_with_idle_timeout",
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main._time.sleep") as mock_sleep, \
+             patch("noru_cli.main.subprocess.run", return_value=install_ok), \
+             patch("noru_cli.main._run_with_idle_timeout",
                    side_effect=[build_fail, build_ok]) as mock_idle:
             result = _build_web_ui(web_dir)
 
@@ -195,10 +195,10 @@ class TestBuildWebUIRetryAndStaleFallback:
         Subprocess = __import__("subprocess")
         install_ok = Subprocess.CompletedProcess([], 0, stdout="", stderr="")
         build_fail = Subprocess.CompletedProcess([], 1, stdout="vite ENOMEM", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._time.sleep"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_ok), \
-             patch("hermes_cli.main._run_with_idle_timeout",
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main._time.sleep"), \
+             patch("noru_cli.main.subprocess.run", return_value=install_ok), \
+             patch("noru_cli.main._run_with_idle_timeout",
                    side_effect=[build_fail, build_fail]):
             result = _build_web_ui(web_dir, fatal=True)
 
@@ -215,10 +215,10 @@ class TestBuildWebUIRetryAndStaleFallback:
         Subprocess = __import__("subprocess")
         install_ok = Subprocess.CompletedProcess([], 0, stdout="", stderr="")
         build_fail = Subprocess.CompletedProcess([], 1, stdout="vite ENOMEM", stderr="")
-        with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-             patch("hermes_cli.main._time.sleep"), \
-             patch("hermes_cli.main.subprocess.run", return_value=install_ok), \
-             patch("hermes_cli.main._run_with_idle_timeout",
+        with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+             patch("noru_cli.main._time.sleep"), \
+             patch("noru_cli.main.subprocess.run", return_value=install_ok), \
+             patch("noru_cli.main._run_with_idle_timeout",
                    side_effect=[build_fail, build_fail]):
             result = _build_web_ui(web_dir, fatal=True)
 

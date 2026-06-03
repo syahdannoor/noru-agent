@@ -34,7 +34,7 @@
           echo "Hermes Agent dev shell"
           ${combinedNonNpm}
           ${hermesNpmLib.mkNpmDevShellHook npmPackageJsonPaths fixLockfilesExe}
-          echo "Ready. Run 'hermes' to start."
+          echo "Ready. Run 'noru' to start."
         '';
       };
     };

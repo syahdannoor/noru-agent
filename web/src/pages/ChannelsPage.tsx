@@ -241,7 +241,7 @@ export default function ChannelsPage() {
 
       <p className="text-xs text-muted-foreground">
         {configured} of {platforms.length} channels configured. Credentials are
-        written to <code className="font-courier">~/.hermes/.env</code>; the
+        written to <code className="font-courier">~/.noru/.env</code>; the
         gateway connects each enabled channel on its next restart.
       </p>
 

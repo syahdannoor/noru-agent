@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-import hermes_cli.doctor as doctor_mod
+import noru_cli.doctor as doctor_mod
 
 
 def _setup_doctor_env(monkeypatch, tmp_path, venv_name="venv"):
-    """Create a minimal HERMES_HOME + PROJECT_ROOT for doctor tests."""
+    """Create a minimal NORU_HOME + PROJECT_ROOT for doctor tests."""
     home = tmp_path / ".hermes"
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("memory: {}\n", encoding="utf-8")
@@ -22,11 +22,11 @@ def _setup_doctor_env(monkeypatch, tmp_path, venv_name="venv"):
     # Create a fake venv entry point
     venv_bin_dir = project / venv_name / "bin"
     venv_bin_dir.mkdir(parents=True, exist_ok=True)
-    hermes_bin = venv_bin_dir / "hermes"
+    hermes_bin = venv_bin_dir / "noru"
     hermes_bin.write_text("#!/usr/bin/env python\n# entry point\n")
     hermes_bin.chmod(0o755)
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "NORU_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -39,7 +39,7 @@ def _setup_doctor_env(monkeypatch, tmp_path, venv_name="venv"):
 
     # Stub auth checks
     try:
-        from hermes_cli import auth as _auth_mod
+        from noru_cli import auth as _auth_mod
         monkeypatch.setattr(_auth_mod, "get_nous_auth_status", lambda: {})
         monkeypatch.setattr(_auth_mod, "get_codex_auth_status", lambda: {})
     except Exception:
@@ -76,7 +76,7 @@ class TestDoctorCommandInstallation:
         # Create the command link dir with correct symlink
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "noru"
         cmd_link.symlink_to(hermes_bin)
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -110,7 +110,7 @@ class TestDoctorCommandInstallation:
         assert "Created symlink" in out
 
         # Verify the symlink was actually created
-        cmd_link = tmp_path / ".local" / "bin" / "hermes"
+        cmd_link = tmp_path / ".local" / "bin" / "noru"
         assert cmd_link.is_symlink()
         assert cmd_link.resolve() == hermes_bin.resolve()
 
@@ -121,7 +121,7 @@ class TestDoctorCommandInstallation:
         # Create a symlink pointing to the wrong target
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "noru"
         wrong_target = tmp_path / "wrong_hermes"
         wrong_target.write_text("#!/usr/bin/env python\n")
         cmd_link.symlink_to(wrong_target)
@@ -139,7 +139,7 @@ class TestDoctorCommandInstallation:
         # Create a symlink pointing to wrong target
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "noru"
         wrong_target = tmp_path / "wrong_hermes"
         wrong_target.write_text("#!/usr/bin/env python\n")
         cmd_link.symlink_to(wrong_target)
@@ -163,7 +163,7 @@ class TestDoctorCommandInstallation:
         project.mkdir(exist_ok=True)
         # Do NOT create any venv entry point
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "NORU_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -174,7 +174,7 @@ class TestDoctorCommandInstallation:
         )
         monkeypatch.setitem(sys.modules, "model_tools", fake_model_tools)
         try:
-            from hermes_cli import auth as _auth_mod
+            from noru_cli import auth as _auth_mod
             monkeypatch.setattr(_auth_mod, "get_nous_auth_status", lambda: {})
             monkeypatch.setattr(_auth_mod, "get_codex_auth_status", lambda: {})
         except Exception:
@@ -195,10 +195,10 @@ class TestDoctorCommandInstallation:
         home, project, _ = _setup_doctor_env(monkeypatch, tmp_path, venv_name=".venv")
 
         # Create the command link with correct symlink
-        hermes_bin = project / ".venv" / "bin" / "hermes"
+        hermes_bin = project / ".venv" / "bin" / "noru"
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
+        cmd_link = cmd_link_dir / "noru"
         cmd_link.symlink_to(hermes_bin)
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
@@ -214,8 +214,8 @@ class TestDoctorCommandInstallation:
 
         cmd_link_dir = tmp_path / ".local" / "bin"
         cmd_link_dir.mkdir(parents=True)
-        cmd_link = cmd_link_dir / "hermes"
-        cmd_link.write_text("#!/bin/sh\nexec python -m hermes_cli.main \"$@\"\n")
+        cmd_link = cmd_link_dir / "noru"
+        cmd_link.write_text("#!/bin/sh\nexec python -m noru_cli.main \"$@\"\n")
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
@@ -248,7 +248,7 @@ class TestDoctorCommandInstallation:
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "NORU_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         monkeypatch.setattr(sys, "platform", "win32")
@@ -259,7 +259,7 @@ class TestDoctorCommandInstallation:
         )
         monkeypatch.setitem(sys.modules, "model_tools", fake_model_tools)
         try:
-            from hermes_cli import auth as _auth_mod
+            from noru_cli import auth as _auth_mod
             monkeypatch.setattr(_auth_mod, "get_nous_auth_status", lambda: {})
             monkeypatch.setattr(_auth_mod, "get_codex_auth_status", lambda: {})
         except Exception:

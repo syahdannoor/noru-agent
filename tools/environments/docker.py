@@ -91,9 +91,9 @@ def _normalize_env_dict(env: dict | None) -> dict[str, str]:
 
 
 def _load_hermes_env_vars() -> dict[str, str]:
-    """Load ~/.hermes/.env values without failing Docker command execution."""
+    """Load ~/.noru/.env values without failing Docker command execution."""
     try:
-        from hermes_cli.config import load_env
+        from noru_cli.config import load_env
 
         return load_env() or {}
     except Exception:
@@ -128,7 +128,7 @@ def _get_active_profile_name() -> str:
     same process don't retroactively relabel running containers.
     """
     try:
-        from hermes_cli.profiles import get_active_profile_name
+        from noru_cli.profiles import get_active_profile_name
 
         return get_active_profile_name() or "default"
     except Exception:
@@ -311,7 +311,7 @@ def find_docker() -> Optional[str]:
 # We drop all capabilities then add back the minimum needed:
 #   DAC_OVERRIDE - root can write to bind-mounted dirs owned by host user
 #   CHOWN/FOWNER - package managers (pip, npm, apt) need to set file ownership
-#   SETUID/SETGID - the image's init drops from root to the 'hermes'
+#   SETUID/SETGID - the image's init drops from root to the 'noru'
 #       user (via `s6-setuidgid` in the bundled image, or whatever
 #       privilege-drop helper a user image uses), which requires these
 #       caps. Combined with `no-new-privileges`, the dropped process
@@ -564,7 +564,7 @@ class DockerEnvironment(BaseEnvironment):
             resource_args.append("--network=none")
 
         # Persistent workspace via bind mounts from a configurable host directory
-        # (TERMINAL_SANDBOX_DIR, default ~/.hermes/sandboxes/). Non-persistent
+        # (TERMINAL_SANDBOX_DIR, default ~/.noru/sandboxes/). Non-persistent
         # mode uses tmpfs (ephemeral, fast, gone on cleanup).
         from tools.environments.base import get_sandbox_dir
 
@@ -792,7 +792,7 @@ class DockerEnvironment(BaseEnvironment):
             "--label", f"hermes-profile={profile_name}",
         ]
         self._labels = {
-            "hermes-agent": "1",
+            "noru-agent": "1",
             "hermes-task-id": task_label,
             "hermes-profile": profile_name,
         }

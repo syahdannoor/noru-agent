@@ -5,7 +5,7 @@ Usage:
   scripts/profile-tui.py [--session SID] [--hold KEY] [--seconds N] [--rate HZ]
 
 Defaults: picks the session with the most messages, holds PageUp for 8s at
-~30 Hz (matching xterm key-repeat), summarizes ~/.hermes/perf.log on exit.
+~30 Hz (matching xterm key-repeat), summarizes ~/.noru/perf.log on exit.
 
 The --tui build must exist (run `npm run build` in ui-tui first). This script
 launches `node dist/entry.js` directly with HERMES_TUI_RESUME set so it
@@ -13,7 +13,7 @@ bypasses the hermes_cli wrapper — we want repeatable timing, not the CLI's
 session-picker flow.
 
 Environment overrides:
-  HERMES_PERF_LOG     (default ~/.hermes/perf.log)
+  HERMES_PERF_LOG     (default ~/.noru/perf.log)
   HERMES_PERF_NODE    (default node from $PATH)
   HERMES_TUI_DIR      (default: <repo>/ui-tui relative to this script)
 
@@ -38,18 +38,18 @@ from typing import Any
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 try:
-    from hermes_constants import get_hermes_home
+    from noru_constants import get_noru_home
 except ImportError:
-    def get_hermes_home() -> Path:  # type: ignore[misc]
-        val = (os.environ.get("HERMES_HOME") or "").strip()
+    def get_noru_home() -> Path:  # type: ignore[misc]
+        val = (os.environ.get("NORU_HOME") or "").strip()
         return Path(val) if val else Path.home() / ".hermes"
 
 DEFAULT_TUI_DIR = Path(
     os.environ.get("HERMES_TUI_DIR")
     or str(Path(__file__).resolve().parent.parent / "ui-tui")
 )
-DEFAULT_LOG = Path(os.environ.get("HERMES_PERF_LOG", str(get_hermes_home() / "perf.log")))
-DEFAULT_STATE_DB = get_hermes_home() / "state.db"
+DEFAULT_LOG = Path(os.environ.get("HERMES_PERF_LOG", str(get_noru_home() / "perf.log")))
+DEFAULT_STATE_DB = get_noru_home() / "state.db"
 
 # Keystroke escape sequences.  Matches what xterm/VT220 send when the
 # terminal has bracketed-paste disabled and the key-repeat handler fires.

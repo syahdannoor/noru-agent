@@ -1,6 +1,6 @@
 """Guards for CLI startup performance regression.
 
-``hermes_cli.main`` skips eager plugin discovery at argparse-setup time
+``noru_cli.main`` skips eager plugin discovery at argparse-setup time
 when the invocation is clearly targeting a known built-in subcommand.
 This saves 500-650ms on ``hermes --help``, ``hermes version``,
 ``hermes logs``, etc., by not importing ``google.cloud.pubsub_v1``,
@@ -28,7 +28,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli.main import (
+from noru_cli.main import (
     _BUILTIN_SUBCOMMANDS,
     _first_positional_argv,
     _plugin_cli_discovery_needed,
@@ -45,10 +45,10 @@ def _live_subcommand_names() -> set[str]:
     plugin-registered commands aren't included — we're validating the
     built-in-only set.
     """
-    from hermes_cli import main as _main
+    from noru_cli import main as _main
 
     argv_backup = sys.argv[:]
-    sys.argv = ["hermes", "--help"]
+    sys.argv = ["noru", "--help"]
     buf = io.StringIO()
     try:
         with patch.object(_main, "_plugin_cli_discovery_needed", return_value=False):
@@ -71,32 +71,32 @@ def _live_subcommand_names() -> set[str]:
 @pytest.mark.parametrize(
     "argv,expected",
     [
-        (["hermes"], None),
-        (["hermes", "--help"], None),
-        (["hermes", "-h"], None),
-        (["hermes", "--version"], None),
-        (["hermes", "-w"], None),
+        (["noru"], None),
+        (["noru", "--help"], None),
+        (["noru", "-h"], None),
+        (["noru", "--version"], None),
+        (["noru", "-w"], None),
         # -p / --profile is stripped from sys.argv by
         # _apply_profile_override() at import time, so it never reaches
         # _first_positional_argv. We test with just -w / --tui here.
-        (["hermes", "-w", "--tui"], None),
-        (["hermes", "version"], "version"),
-        (["hermes", "--tui", "chat"], "chat"),
-        (["hermes", "-w", "logs"], "logs"),
-        (["hermes", "chat", "hello world"], "chat"),
-        (["hermes", "gateway", "run"], "gateway"),
+        (["noru", "-w", "--tui"], None),
+        (["noru", "version"], "version"),
+        (["noru", "--tui", "chat"], "chat"),
+        (["noru", "-w", "logs"], "logs"),
+        (["noru", "chat", "hello world"], "chat"),
+        (["noru", "gateway", "run"], "gateway"),
         # Top-level value-taking flags: the value should be skipped.
-        (["hermes", "-m", "gpt5", "chat"], "chat"),
-        (["hermes", "--model", "gpt5", "chat", "hi"], "chat"),
-        (["hermes", "-m", "gpt5", "--provider", "openai", "chat"], "chat"),
-        (["hermes", "-z", "hello world"], None),
-        (["hermes", "-z", "hello", "chat"], "chat"),
-        (["hermes", "--model=gpt5", "chat"], "chat"),     # inline form
-        (["hermes", "--", "chat"], "chat"),               # -- terminator
-        (["hermes", "-w", "--"], None),
+        (["noru", "-m", "gpt5", "chat"], "chat"),
+        (["noru", "--model", "gpt5", "chat", "hi"], "chat"),
+        (["noru", "-m", "gpt5", "--provider", "openai", "chat"], "chat"),
+        (["noru", "-z", "hello world"], None),
+        (["noru", "-z", "hello", "chat"], "chat"),
+        (["noru", "--model=gpt5", "chat"], "chat"),     # inline form
+        (["noru", "--", "chat"], "chat"),               # -- terminator
+        (["noru", "-w", "--"], None),
         # Unknown positional after skipped flags → plugin-cmd candidate.
-        (["hermes", "some-plugin-cmd"], "some-plugin-cmd"),
-        (["hermes", "-m", "gpt5", "some-plugin-cmd"], "some-plugin-cmd"),
+        (["noru", "some-plugin-cmd"], "some-plugin-cmd"),
+        (["noru", "-m", "gpt5", "some-plugin-cmd"], "some-plugin-cmd"),
     ],
 )
 def test_first_positional_argv(argv, expected):
@@ -110,17 +110,17 @@ def test_first_positional_argv(argv, expected):
 @pytest.mark.parametrize(
     "argv",
     [
-        ["hermes"],                          # bare → chat
-        ["hermes", "--help"],                # top-level help
-        ["hermes", "-h"],
-        ["hermes", "version"],               # known built-in
-        ["hermes", "logs"],
-        ["hermes", "gateway", "run"],
-        ["hermes", "--tui"],
-        ["hermes", "-w", "--tui"],
-        ["hermes", "chat", "hi"],
-        ["hermes", "help"],                  # accepted built-in-ish
-        ["hermes", "-m", "gpt5", "chat"],    # flag-value-skipping
+        ["noru"],                          # bare → chat
+        ["noru", "--help"],                # top-level help
+        ["noru", "-h"],
+        ["noru", "version"],               # known built-in
+        ["noru", "logs"],
+        ["noru", "gateway", "run"],
+        ["noru", "--tui"],
+        ["noru", "-w", "--tui"],
+        ["noru", "chat", "hi"],
+        ["noru", "help"],                  # accepted built-in-ish
+        ["noru", "-m", "gpt5", "chat"],    # flag-value-skipping
     ],
 )
 def test_discovery_skipped_for_builtins(argv):
@@ -131,9 +131,9 @@ def test_discovery_skipped_for_builtins(argv):
 @pytest.mark.parametrize(
     "argv",
     [
-        ["hermes", "meet", "join"],          # potential google_meet plugin
-        ["hermes", "honcho", "status"],      # potential memory plugin
-        ["hermes", "unknown-subcmd"],
+        ["noru", "meet", "join"],          # potential google_meet plugin
+        ["noru", "honcho", "status"],      # potential memory plugin
+        ["noru", "unknown-subcmd"],
     ],
 )
 def test_discovery_runs_for_unknown_positional(argv):

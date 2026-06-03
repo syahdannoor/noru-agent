@@ -259,7 +259,7 @@ class TestExchangeAuthCode:
 
 
 class TestHermesConstantsFallback:
-    """Tests for _hermes_home.py fallback when hermes_constants is unavailable."""
+    """Tests for _hermes_home.py fallback when noru_constants is unavailable."""
 
     HELPER_PATH = (
         Path(__file__).resolve().parents[2]
@@ -267,8 +267,8 @@ class TestHermesConstantsFallback:
     )
 
     def _load_helper(self, monkeypatch):
-        """Load _hermes_home.py with hermes_constants blocked."""
-        monkeypatch.setitem(sys.modules, "hermes_constants", None)
+        """Load _hermes_home.py with noru_constants blocked."""
+        monkeypatch.setitem(sys.modules, "noru_constants", None)
         spec = importlib.util.spec_from_file_location("_hermes_home_test", self.HELPER_PATH)
         module = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
@@ -276,49 +276,49 @@ class TestHermesConstantsFallback:
         return module
 
     def test_fallback_uses_hermes_home_env_var(self, monkeypatch, tmp_path):
-        """When hermes_constants is missing, HERMES_HOME comes from env var."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "custom-hermes"))
+        """When noru_constants is missing, NORU_HOME comes from env var."""
+        monkeypatch.setenv("NORU_HOME", str(tmp_path / "custom-hermes"))
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == tmp_path / "custom-hermes"
+        assert module.get_noru_home() == tmp_path / "custom-hermes"
 
     def test_fallback_defaults_to_dot_hermes(self, monkeypatch):
-        """When hermes_constants is missing and HERMES_HOME unset, default to ~/.hermes."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        """When noru_constants is missing and NORU_HOME unset, default to ~/.hermes."""
+        monkeypatch.delenv("NORU_HOME", raising=False)
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == Path.home() / ".hermes"
+        assert module.get_noru_home() == Path.home() / ".hermes"
 
     def test_fallback_ignores_empty_hermes_home(self, monkeypatch):
-        """Empty/whitespace HERMES_HOME is treated as unset."""
-        monkeypatch.setenv("HERMES_HOME", "  ")
+        """Empty/whitespace NORU_HOME is treated as unset."""
+        monkeypatch.setenv("NORU_HOME", "  ")
         module = self._load_helper(monkeypatch)
-        assert module.get_hermes_home() == Path.home() / ".hermes"
+        assert module.get_noru_home() == Path.home() / ".hermes"
 
-    def test_fallback_display_hermes_home_shortens_path(self, monkeypatch):
-        """Fallback display_hermes_home() uses ~/ shorthand like the real one."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+    def test_fallback_display_noru_home_shortens_path(self, monkeypatch):
+        """Fallback display_noru_home() uses ~/ shorthand like the real one."""
+        monkeypatch.delenv("NORU_HOME", raising=False)
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "~/.hermes"
+        assert module.display_noru_home() == "~/.hermes"
 
-    def test_fallback_display_hermes_home_profile_path(self, monkeypatch):
-        """Fallback display_hermes_home() handles profile paths under ~/."""
-        monkeypatch.setenv("HERMES_HOME", str(Path.home() / ".hermes/profiles/coder"))
+    def test_fallback_display_noru_home_profile_path(self, monkeypatch):
+        """Fallback display_noru_home() handles profile paths under ~/."""
+        monkeypatch.setenv("NORU_HOME", str(Path.home() / ".hermes/profiles/coder"))
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "~/.hermes/profiles/coder"
+        assert module.display_noru_home() == "~/.noru/profiles/coder"
 
-    def test_fallback_display_hermes_home_custom_path(self, monkeypatch):
-        """Fallback display_hermes_home() returns full path for non-home locations."""
-        monkeypatch.setenv("HERMES_HOME", "/opt/hermes-custom")
+    def test_fallback_display_noru_home_custom_path(self, monkeypatch):
+        """Fallback display_noru_home() returns full path for non-home locations."""
+        monkeypatch.setenv("NORU_HOME", "/opt/hermes-custom")
         module = self._load_helper(monkeypatch)
-        assert module.display_hermes_home() == "/opt/hermes-custom"
+        assert module.display_noru_home() == "/opt/hermes-custom"
 
-    def test_delegates_to_hermes_constants_when_available(self):
-        """When hermes_constants IS importable, _hermes_home delegates to it."""
+    def test_delegates_to_noru_constants_when_available(self):
+        """When noru_constants IS importable, _hermes_home delegates to it."""
         spec = importlib.util.spec_from_file_location(
             "_hermes_home_happy", self.HELPER_PATH
         )
         module = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
         spec.loader.exec_module(module)
-        import hermes_constants
-        assert module.get_hermes_home is hermes_constants.get_hermes_home
-        assert module.display_hermes_home is hermes_constants.display_hermes_home
+        import noru_constants
+        assert module.get_noru_home is noru_constants.get_noru_home
+        assert module.display_noru_home is noru_constants.display_noru_home

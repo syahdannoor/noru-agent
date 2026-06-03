@@ -4,7 +4,7 @@ Ported from openai/codex#18646 (`feat: add --ignore-user-config and --ignore-rul
 Codex's flags fully isolate a run from user-level config and exec-policy .rules
 files. In Hermes the equivalent isolation is:
 
-* ``--ignore-user-config`` → skip ``~/.hermes/config.yaml`` in ``load_cli_config()``
+* ``--ignore-user-config`` → skip ``~/.noru/config.yaml`` in ``load_cli_config()``
   (credentials in ``.env`` are still loaded).
 * ``--ignore-rules`` → skip AGENTS.md / SOUL.md / .cursorrules auto-injection
   and persistent memory (maps to ``AIAgent(skip_context_files=True,
@@ -213,7 +213,7 @@ class TestArgparseFlagsRegistered:
         # two flags under test. If someone removes the flag from main.py, this
         # test keeps passing in isolation — but the E2E test below catches it.
         import argparse
-        parser = argparse.ArgumentParser(prog="hermes")
+        parser = argparse.ArgumentParser(prog="noru")
         subs = parser.add_subparsers(dest="command")
         chat = subs.add_parser("chat")
         chat.add_argument("--ignore-user-config", action="store_true", default=False)
@@ -225,7 +225,7 @@ class TestArgparseFlagsRegistered:
 
     def test_main_py_registers_both_flags(self):
         """E2E: the real hermes parser accepts both flags."""
-        from hermes_cli._parser import build_top_level_parser
+        from noru_cli._parser import build_top_level_parser
 
         parser, _subparsers, chat_parser = build_top_level_parser()
 
@@ -238,7 +238,7 @@ class TestArgparseFlagsRegistered:
 
         # And the cmd_chat env-var wiring must be present
         import inspect
-        import hermes_cli.main as hm
+        import noru_cli.main as hm
         src = inspect.getsource(hm)
         assert "HERMES_IGNORE_USER_CONFIG" in src
         assert "HERMES_IGNORE_RULES" in src

@@ -38,7 +38,7 @@ def _write_manifest(root: Path, version: str) -> None:
     (manifest_dir / "agent.json").write_text(
         json.dumps(
             {
-                "id": "hermes-agent",
+                "id": "noru-agent",
                 "name": "Hermes Agent",
                 "version": version,
                 "description": "test",
@@ -88,7 +88,7 @@ def test_update_version_files_bumps_manifest_alongside_pyproject(
     calls, so it must drive the manifest bump too."""
     _write_manifest(tmp_path, "0.13.0")
     (tmp_path / "pyproject.toml").write_text(
-        '[project]\nname = "hermes-agent"\nversion = "0.13.0"\n', encoding="utf-8"
+        '[project]\nname = "noru-agent"\nversion = "0.13.0"\n', encoding="utf-8"
     )
     version_dir = tmp_path / "hermes_cli"
     version_dir.mkdir()

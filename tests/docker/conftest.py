@@ -108,7 +108,7 @@ def container_name(request) -> Iterator[str]:
 def docker_exec(
     container: str,
     *args: str,
-    user: str = "hermes",
+    user: str = "noru",
     timeout: int = 30,
     extra_docker_args: tuple[str, ...] = (),
 ) -> subprocess.CompletedProcess[str]:
@@ -130,7 +130,7 @@ def docker_exec_sh(
     container: str,
     command: str,
     *,
-    user: str = "hermes",
+    user: str = "noru",
     timeout: int = 30,
 ) -> subprocess.CompletedProcess[str]:
     """Run ``sh -c <command>`` inside the container as ``user``."""

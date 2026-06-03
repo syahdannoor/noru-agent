@@ -75,7 +75,7 @@ Run a Python script *before* the agent. The script's stdout becomes context. The
 ```bash
 hermes cron create "every 1h" \
   "If CHANGE DETECTED, summarize what changed. If NO_CHANGE, respond with [SILENT]." \
-  --script ~/.hermes/scripts/watch-site.py \
+  --script ~/.noru/scripts/watch-site.py \
   --name "Pricing monitor" \
   --deliver telegram
 ```
@@ -153,7 +153,7 @@ Full automation templates gallery: [hermes-agent.nousresearch.com/docs/guides/au
 
 Documentation: [hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com)
 
-GitHub: [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)
+GitHub: [github.com/syahdannoor/noru-agent](https://github.com/syahdannoor/noru-agent)
 
 ---
 

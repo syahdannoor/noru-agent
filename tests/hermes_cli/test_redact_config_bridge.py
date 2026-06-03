@@ -38,7 +38,7 @@ def test_redact_secrets_false_in_config_yaml_is_honored(tmp_path):
     # Empty .env so nothing else sets the env var
     (hermes_home / ".env").write_text("")
 
-    # Spawn a fresh Python process that imports hermes_cli.main and checks
+    # Spawn a fresh Python process that imports noru_cli.main and checks
     # _REDACT_ENABLED. Must be a subprocess — we need a clean module state.
     probe = textwrap.dedent(
         """\
@@ -46,7 +46,7 @@ def test_redact_secrets_false_in_config_yaml_is_honored(tmp_path):
         # Make absolutely sure the env var is not pre-set
         os.environ.pop("HERMES_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
-        import hermes_cli.main  # triggers the bridge + setup_logging
+        import noru_cli.main  # triggers the bridge + setup_logging
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
         print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
@@ -54,7 +54,7 @@ def test_redact_secrets_false_in_config_yaml_is_honored(tmp_path):
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
+    env["NORU_HOME"] = str(hermes_home)
     env.pop("HERMES_REDACT_SECRETS", None)
 
     result = subprocess.run(
@@ -90,14 +90,14 @@ def test_redact_secrets_default_true_when_unset(tmp_path):
         import sys, os
         os.environ.pop("HERMES_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
-        import hermes_cli.main
+        import noru_cli.main
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
         """
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
+    env["NORU_HOME"] = str(hermes_home)
     env.pop("HERMES_REDACT_SECRETS", None)
 
     result = subprocess.run(
@@ -132,7 +132,7 @@ def test_redact_secrets_true_in_config_yaml_is_honored(tmp_path):
         import sys, os
         os.environ.pop("HERMES_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
-        import hermes_cli.main
+        import noru_cli.main
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
         print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
@@ -140,7 +140,7 @@ def test_redact_secrets_true_in_config_yaml_is_honored(tmp_path):
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
+    env["NORU_HOME"] = str(hermes_home)
     env.pop("HERMES_REDACT_SECRETS", None)
 
     result = subprocess.run(
@@ -178,7 +178,7 @@ def test_dotenv_redact_secrets_beats_config_yaml(tmp_path):
         import sys, os
         os.environ.pop("HERMES_REDACT_SECRETS", None)
         sys.path.insert(0, %r)
-        import hermes_cli.main
+        import noru_cli.main
         import agent.redact
         print(f"REDACT_ENABLED={agent.redact._REDACT_ENABLED}")
         print(f"ENV_VAR={os.environ.get('HERMES_REDACT_SECRETS', '<unset>')}")
@@ -186,7 +186,7 @@ def test_dotenv_redact_secrets_beats_config_yaml(tmp_path):
     ) % str(REPO_ROOT)
 
     env = dict(os.environ)
-    env["HERMES_HOME"] = str(hermes_home)
+    env["NORU_HOME"] = str(hermes_home)
     env.pop("HERMES_REDACT_SECRETS", None)
 
     result = subprocess.run(

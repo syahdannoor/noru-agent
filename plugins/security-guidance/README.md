@@ -43,7 +43,7 @@ Plugins are opt-in. Add it to your allow-list:
 
 ```bash
 hermes plugins enable security-guidance
-# or edit ~/.hermes/config.yaml manually:
+# or edit ~/.noru/config.yaml manually:
 plugins:
   enabled:
     - security-guidance

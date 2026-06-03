@@ -113,7 +113,7 @@ _SKILL_REVIEW_PROMPT = (
     "If you notice two existing skills that overlap, note it in your "
     "reply — the background curator handles consolidation at scale.\n\n"
     "Protected skills (DO NOT edit these):\n"
-    "  • Bundled skills (shipped with Hermes, e.g. 'hermes-agent').\n"
+    "  • Bundled skills (shipped with Hermes, e.g. 'noru-agent').\n"
     "  • Hub-installed skills (installed via 'hermes skills install').\n"
     "Pinned skills (marked via 'hermes curator pin') CAN be improved — "
     "pin only blocks deletion/archive/consolidation by the curator, not "
@@ -199,7 +199,7 @@ _COMBINED_REVIEW_PROMPT = (
     "If you notice overlapping existing skills, mention it — the "
     "background curator handles consolidation.\n\n"
     "Protected skills (DO NOT edit these):\n"
-    "  • Bundled skills (shipped with Hermes, e.g. 'hermes-agent').\n"
+    "  • Bundled skills (shipped with Hermes, e.g. 'noru-agent').\n"
     "  • Hub-installed skills (installed via 'hermes skills install').\n"
     "Pinned skills (marked via 'hermes curator pin') CAN be improved — "
     "pin only blocks deletion/archive/consolidation by the curator, not "
@@ -451,7 +451,7 @@ def _run_review_in_thread(
             review_agent.session_id = agent.session_id
 
             from model_tools import get_tool_definitions
-            from hermes_cli.plugins import (
+            from noru_cli.plugins import (
                 set_thread_tool_whitelist,
                 clear_thread_tool_whitelist,
             )

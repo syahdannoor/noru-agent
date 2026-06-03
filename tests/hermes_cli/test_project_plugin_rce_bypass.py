@@ -4,13 +4,13 @@ server's dashboard plugin loader.
 
 Two primitives combined into the original advisory chain:
 
-1. ``hermes_cli.web_server._discover_dashboard_plugins`` opted into
+1. ``noru_cli.web_server._discover_dashboard_plugins`` opted into
    the untrusted ``./.hermes/plugins/`` source via
    ``os.environ.get("HERMES_ENABLE_PROJECT_PLUGINS")`` — truthy for
    any non-empty string, so ``=0`` / ``=false`` / ``=no`` (all of
    which the agent loader treats as off, and which operators set to
    *disable* project plugins) silently *enabled* the source.
-2. ``hermes_cli.web_server._mount_plugin_api_routes`` then imported
+2. ``noru_cli.web_server._mount_plugin_api_routes`` then imported
    each plugin's manifest ``api`` field as a Python module via
    ``importlib.util.spec_from_file_location``.  The field was used
    raw, with no path-traversal check, so a single manifest line
@@ -37,7 +37,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import web_server
+from noru_cli import web_server
 
 
 @pytest.fixture(autouse=True)
@@ -74,7 +74,7 @@ class TestProjectPluginsEnvGate:
     def project_plugin(self, tmp_path, monkeypatch):
         """Plant a project-source plugin under CWD's ``.hermes/plugins``
         and isolate the user-plugins dir to an empty tmp tree."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("NORU_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir()
         cwd = tmp_path / "evil-repo"
         cwd.mkdir()
@@ -184,7 +184,7 @@ class TestDiscoveryScrubsApiField:
 
     @pytest.fixture
     def user_plugin_factory(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("NORU_HOME", str(tmp_path))
         monkeypatch.delenv("HERMES_ENABLE_PROJECT_PLUGINS", raising=False)
 
         def _make(name: str, manifest: dict) -> None:
@@ -315,7 +315,7 @@ class TestEndToEndPocBlocked:
     project-source bypass)."""
 
     def test_full_chain_blocked(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("NORU_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir()
         cwd = tmp_path / "evil-repo"
         cwd.mkdir()

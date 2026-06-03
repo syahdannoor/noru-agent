@@ -1,8 +1,8 @@
-"""Tests for hermes_cli.container_boot — the cont-init.d-time
+"""Tests for noru_cli.container_boot — the cont-init.d-time
 reconciliation that recreates per-profile gateway s6 service slots
 from the persistent profiles directory.
 
-These tests run against a fake $HERMES_HOME under tmp_path; no real
+These tests run against a fake $NORU_HOME under tmp_path; no real
 s6 supervision tree is required. The in-container integration test
 covering end-to-end "docker restart" survival lives in
 tests/docker/test_container_restart.py.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_cli.container_boot import (
+from noru_cli.container_boot import (
     ReconcileAction,
     reconcile_profile_gateways,
 )
@@ -59,7 +59,7 @@ def _seed_default_root(
     with_pid: bool = False,
 ) -> None:
     """Populate gateway_state.json / stale runtime files at the
-    HERMES_HOME root (the implicit default profile)."""
+    NORU_HOME root (the implicit default profile)."""
     if state is not None:
         (hermes_home / "gateway_state.json").write_text(json.dumps({
             "gateway_state": state, "timestamp": 1234567890,
@@ -229,7 +229,7 @@ def test_reconcile_log_rotates_when_size_exceeded(
 ) -> None:
     """When container-boot.log exceeds _LOG_ROTATE_BYTES, the existing
     file is rotated to .1 before the new entries are appended."""
-    from hermes_cli import container_boot
+    from noru_cli import container_boot
 
     # Tighten the threshold so we don't have to write 256 KiB.
     monkeypatch.setattr(container_boot, "_LOG_ROTATE_BYTES", 200)
@@ -259,7 +259,7 @@ def test_reconcile_log_does_not_rotate_below_threshold(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A small existing log is appended to in place; no .1 is created."""
-    from hermes_cli import container_boot
+    from noru_cli import container_boot
     monkeypatch.setattr(container_boot, "_LOG_ROTATE_BYTES", 10_000_000)
 
     log_path = tmp_path / "logs" / "container-boot.log"
@@ -285,7 +285,7 @@ def test_reconcile_log_rotation_overwrites_existing_dot1(
 ) -> None:
     """Rotating again replaces the prior .1 — we keep at most one
     rotated file (soft cap of ~2 × threshold)."""
-    from hermes_cli import container_boot
+    from noru_cli import container_boot
     monkeypatch.setattr(container_boot, "_LOG_ROTATE_BYTES", 200)
 
     log_dir = tmp_path / "logs"; log_dir.mkdir()
@@ -326,7 +326,7 @@ def test_dry_run_makes_no_filesystem_changes(tmp_path: Path) -> None:
 def test_missing_profiles_root_still_registers_default_slot(
     tmp_path: Path,
 ) -> None:
-    """When $HERMES_HOME/profiles doesn't exist (fresh install), the
+    """When $NORU_HOME/profiles doesn't exist (fresh install), the
     reconciliation should still register a gateway-default slot for
     the root profile and return without raising. Previously this
     returned an empty list; the default slot is now always present
@@ -435,7 +435,7 @@ def test_register_service_cleans_up_stale_tmp_dir(tmp_path: Path) -> None:
 
 
 def test_default_slot_always_registered_on_empty_home(tmp_path: Path) -> None:
-    """Bare HERMES_HOME with nothing under it still produces a
+    """Bare NORU_HOME with nothing under it still produces a
     gateway-default slot (down state)."""
     scandir = tmp_path / "run-service"; scandir.mkdir()
 
@@ -454,7 +454,7 @@ def test_default_slot_always_registered_on_empty_home(tmp_path: Path) -> None:
 
 def test_default_slot_run_script_omits_profile_flag(tmp_path: Path) -> None:
     """The default slot's run script must NOT pass `-p default` —
-    that would resolve to $HERMES_HOME/profiles/default/ instead of
+    that would resolve to $NORU_HOME/profiles/default/ instead of
     the root profile. It must call `hermes gateway run` directly."""
     scandir = tmp_path / "run-service"; scandir.mkdir()
 
@@ -469,7 +469,7 @@ def test_default_slot_run_script_omits_profile_flag(tmp_path: Path) -> None:
 
 
 def test_default_slot_autostarts_when_root_state_running(tmp_path: Path) -> None:
-    """gateway_state.json at the HERMES_HOME root with state=running
+    """gateway_state.json at the NORU_HOME root with state=running
     means the default slot auto-starts on container boot."""
     scandir = tmp_path / "run-service"; scandir.mkdir()
     _seed_default_root(tmp_path, state="running")
@@ -604,7 +604,7 @@ def test_default_slot_does_not_autostart_when_root_state_startup_failed(
 def test_default_slot_cleans_up_stale_runtime_files_at_root(
     tmp_path: Path,
 ) -> None:
-    """gateway.pid and processes.json at the HERMES_HOME root (left
+    """gateway.pid and processes.json at the NORU_HOME root (left
     over from the previous container's default gateway) must be
     swept the same way as for named profiles."""
     scandir = tmp_path / "run-service"; scandir.mkdir()

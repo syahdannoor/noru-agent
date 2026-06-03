@@ -1,4 +1,4 @@
-"""Tests for the secret-source tracking in ``hermes_cli.env_loader``.
+"""Tests for the secret-source tracking in ``noru_cli.env_loader``.
 
 These cover the small public surface that lets `hermes model` / `hermes setup`
 label detected credentials with their origin ("from Bitwarden") so users
@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from hermes_cli import env_loader  # noqa: E402
+from noru_cli import env_loader  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -67,7 +67,7 @@ def test_apply_external_secret_sources_records_bitwarden_origin(tmp_path, monkey
     """End-to-end: when ``apply_bitwarden_secrets`` returns applied keys,
     they end up in ``_SECRET_SOURCES`` so the UI can label them."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("NORU_HOME", str(tmp_path))
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
         "secrets:\n"
@@ -107,7 +107,7 @@ def test_apply_external_secret_sources_records_bitwarden_origin(tmp_path, monkey
 def test_apply_external_secret_sources_noop_when_disabled(tmp_path, monkeypatch):
     """Disabled Bitwarden config must not touch the source map."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("NORU_HOME", str(tmp_path))
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
         "secrets:\n"
@@ -127,10 +127,10 @@ def test_apply_external_secret_sources_dedupes_within_process(tmp_path, monkeypa
     Bitwarden status line previously printed once per call — 3-5x per
     startup.  The applied-home guard must short-circuit subsequent calls
     so the heavy work (config re-parse, Bitwarden lookup, status print)
-    runs exactly once per HERMES_HOME per process.
+    runs exactly once per NORU_HOME per process.
     """
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("NORU_HOME", str(tmp_path))
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
         "secrets:\n"

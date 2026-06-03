@@ -20,7 +20,7 @@ appear in ``/model`` without a Hermes release.
 from unittest.mock import patch
 
 
-from hermes_cli.models import (
+from noru_cli.models import (
     _MODELS_DEV_PREFERRED,
     _merge_with_models_dev,
     provider_model_ids,
@@ -109,7 +109,7 @@ class TestOpenRouterAndNousUnchanged:
     def test_openrouter_does_not_call_merge(self):
         """openrouter takes its own live path — merge helper must NOT run."""
         with patch(
-            "hermes_cli.models._merge_with_models_dev",
+            "noru_cli.models._merge_with_models_dev",
             side_effect=AssertionError("merge should not be called for openrouter"),
         ):
             # Even if model_ids() fails for some other reason, we just care

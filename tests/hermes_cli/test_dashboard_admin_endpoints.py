@@ -15,15 +15,15 @@ def _client():
         from starlette.testclient import TestClient
     except ImportError:
         pytest.skip("fastapi/starlette not installed")
-    import hermes_state
-    from hermes_constants import get_hermes_home
-    from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
+    import noru_state
+    from noru_constants import get_noru_home
+    from noru_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
-    # Keep the state DB under the isolated HERMES_HOME for any handler that
+    # Keep the state DB under the isolated NORU_HOME for any handler that
     # touches it.
-    hermes_state.DEFAULT_DB_PATH = get_hermes_home() / "state.db"
+    noru_state.DEFAULT_DB_PATH = get_noru_home() / "state.db"
     return client, _SESSION_HEADER_NAME
 
 
@@ -45,7 +45,7 @@ class TestMcpEndpoints:
         assert [s["name"] for s in servers] == ["srv1"]
 
         # CLI parity: the server is in config.yaml under mcp_servers.
-        from hermes_cli.mcp_config import _get_mcp_servers
+        from noru_cli.mcp_config import _get_mcp_servers
 
         assert "srv1" in _get_mcp_servers()
 
@@ -144,9 +144,9 @@ class TestMemoryEndpoints:
     @pytest.fixture(autouse=True)
     def _setup(self, _isolate_hermes_home):
         self.client, _ = _client()
-        from hermes_constants import get_hermes_home
+        from noru_constants import get_noru_home
 
-        (get_hermes_home() / "memories").mkdir(parents=True, exist_ok=True)
+        (get_noru_home() / "memories").mkdir(parents=True, exist_ok=True)
 
     def test_status_and_select(self):
         data = self.client.get("/api/memory").json()
@@ -161,9 +161,9 @@ class TestMemoryEndpoints:
         assert r.status_code == 400
 
     def test_reset_targets(self):
-        from hermes_constants import get_hermes_home
+        from noru_constants import get_noru_home
 
-        mem = get_hermes_home() / "memories"
+        mem = get_noru_home() / "memories"
         (mem / "MEMORY.md").write_text("notes")
         (mem / "USER.md").write_text("user")
 
@@ -208,7 +208,7 @@ class TestOpsEndpoints:
         self.client, _ = _client()
 
     def test_hooks_list_reads_config(self):
-        from hermes_cli.config import load_config, save_config
+        from noru_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg["hooks"] = {
@@ -314,7 +314,7 @@ class TestSessionManagementEndpoints:
     @pytest.fixture(autouse=True)
     def _setup(self, _isolate_hermes_home):
         self.client, _ = _client()
-        from hermes_state import SessionDB
+        from noru_state import SessionDB
 
         db = SessionDB()
         db.create_session(session_id="sess-x", source="cli")
@@ -364,7 +364,7 @@ class TestWebhookToggleEndpoint:
     def _setup(self, _isolate_hermes_home):
         self.client, _ = _client()
         # Enable the webhook platform so a subscription can be created.
-        from hermes_cli.config import load_config, save_config
+        from noru_cli.config import load_config, save_config
 
         cfg = load_config()
         cfg.setdefault("platforms", {})["webhook"] = {
@@ -394,7 +394,7 @@ class TestAdminEndpointsAuthGate:
     @pytest.fixture(autouse=True)
     def _setup(self, _isolate_hermes_home):
         from starlette.testclient import TestClient
-        from hermes_cli.web_server import app
+        from noru_cli.web_server import app
 
         # No session header → must be rejected.
         self.client = TestClient(app)

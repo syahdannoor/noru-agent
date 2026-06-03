@@ -457,7 +457,7 @@ class RetainDBMemoryProvider(MemoryProvider):
         self._queue: _WriteQueue | None = None
         self._user_id = "default"
         self._session_id = ""
-        self._agent_id = "hermes"
+        self._agent_id = "noru"
         self._lock = threading.Lock()
 
         # Prefetch caches
@@ -503,10 +503,10 @@ class RetainDBMemoryProvider(MemoryProvider):
         self._client = _Client(api_key, base_url, project)
         self._session_id = session_id
         self._user_id = kwargs.get("user_id", "default") or "default"
-        self._agent_id = kwargs.get("agent_id", "hermes") or "hermes"
+        self._agent_id = kwargs.get("agent_id", "noru") or "noru"
 
-        from hermes_constants import get_hermes_home
-        hermes_home_path = get_hermes_home()
+        from noru_constants import get_noru_home
+        hermes_home_path = get_noru_home()
         db_path = hermes_home_path / "retaindb_queue.db"
         self._queue = _WriteQueue(self._client, db_path)
 

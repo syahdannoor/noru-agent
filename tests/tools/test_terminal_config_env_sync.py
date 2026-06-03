@@ -19,7 +19,7 @@ for ``docker_run_as_host_user`` (gateway and CLI maps) and once for
 This test guards against future drift by extracting all three maps via source
 inspection and asserting they all bridge the same set of writable
 ``terminal.*`` keys.  Source inspection (rather than importing the live
-dicts) keeps the test independent of the user's ~/.hermes/config.yaml and
+dicts) keeps the test independent of the user's ~/.noru/config.yaml and
 mirrors the pattern used in tests/hermes_cli/test_config_drift.py.
 """
 
@@ -88,7 +88,7 @@ def _gateway_env_map_keys() -> set[str]:
 
 def _save_config_env_sync_keys() -> set[str]:
     """terminal config keys bridged by ``hermes config set foo bar``."""
-    from hermes_cli import config as hc_config
+    from noru_cli import config as hc_config
     source = inspect.getsource(hc_config.set_config_value)
     keys = _extract_dict_keys(source, "_config_to_env_sync")
     # set_config_value uses fully-qualified ``terminal.foo`` keys; strip the

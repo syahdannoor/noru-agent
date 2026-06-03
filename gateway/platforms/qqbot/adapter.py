@@ -255,7 +255,7 @@ class QQAdapter(BasePlatformAdapter):
 
         # Default interaction dispatcher: routes approval-button clicks to
         # tools.approval.resolve_gateway_approval() and update-prompt clicks
-        # to ~/.hermes/.update_response. Set here so the cross-adapter gateway
+        # to ~/.noru/.update_response. Set here so the cross-adapter gateway
         # contract (send_exec_approval / send_update_prompt) works out of the
         # box; callers can override with set_interaction_callback(None) or
         # register a custom handler.
@@ -736,8 +736,8 @@ class QQAdapter(BasePlatformAdapter):
                 "shard": [0, 1],
                 "properties": {
                     "$os": "macOS",
-                    "$browser": "hermes-agent",
-                    "$device": "hermes-agent",
+                    "$browser": "noru-agent",
+                    "$device": "noru-agent",
                 },
             },
         }
@@ -1108,7 +1108,7 @@ class QQAdapter(BasePlatformAdapter):
           :func:`tools.approval.resolve_gateway_approval`
           (unblocks the agent thread waiting on a dangerous-command approval).
         - ``update_prompt:<answer>`` →
-          writes the answer to ``~/.hermes/.update_response`` for the
+          writes the answer to ``~/.noru/.update_response`` for the
           detached ``hermes update --gateway`` process to consume.
         - Anything else is logged at DEBUG and ignored.
 
@@ -1183,8 +1183,8 @@ class QQAdapter(BasePlatformAdapter):
         Writes via ``tmp + rename`` so a partial write can't fool the reader.
         """
         try:
-            from hermes_constants import get_hermes_home
-            home = get_hermes_home()
+            from noru_constants import get_noru_home
+            home = get_noru_home()
             response_path = home / ".update_response"
             tmp = response_path.with_suffix(".tmp")
             tmp.write_text(answer)
@@ -2697,7 +2697,7 @@ class QQAdapter(BasePlatformAdapter):
         clicks surface as ``INTERACTION_CREATE`` with
         ``button_data = 'update_prompt:y'`` or ``'update_prompt:n'``;
         the adapter's interaction callback writes the answer to
-        ``~/.hermes/.update_response`` so the detached update process
+        ``~/.noru/.update_response`` so the detached update process
         can read it.
         """
         del session_key, metadata  # present for contract parity only.

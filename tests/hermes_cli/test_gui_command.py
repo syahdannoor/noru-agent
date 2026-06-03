@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from hermes_cli import main as cli_main
+from noru_cli import main as cli_main
 
 
 def _ns(**kw):
@@ -29,7 +29,7 @@ def _ns(**kw):
 
 
 def _make_desktop_tree(tmp_path: Path) -> Path:
-    root = tmp_path / "hermes-agent"
+    root = tmp_path / "noru-agent"
     desktop_dir = root / "apps" / "desktop"
     desktop_dir.mkdir(parents=True)
     (desktop_dir / "package.json").write_text("{}", encoding="utf-8")
@@ -44,7 +44,7 @@ def _make_packaged_executable(root: Path, monkeypatch, platform: str = "darwin")
     elif platform == "win32":
         exe = desktop_dir / "release" / "win-unpacked" / "Hermes.exe"
     else:
-        exe = desktop_dir / "release" / "linux-unpacked" / "hermes"
+        exe = desktop_dir / "release" / "linux-unpacked" / "noru"
     exe.parent.mkdir(parents=True)
     exe.write_text("", encoding="utf-8")
     return exe
@@ -60,12 +60,12 @@ def test_gui_installs_packages_and_launches_desktop_app(tmp_path, monkeypatch):
     pack_ok = subprocess.CompletedProcess(["npm", "run", "pack"], 0)
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._write_desktop_build_stamp"), \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("noru_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+         patch("noru_cli.main._desktop_build_needed", return_value=True), \
+         patch("noru_cli.main._write_desktop_build_stamp"), \
+         patch("noru_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("noru_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -88,12 +88,12 @@ def test_gui_forwards_desktop_environment_overrides(tmp_path, monkeypatch):
 
     ok = subprocess.CompletedProcess([], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=ok), \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._write_desktop_build_stamp"), \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("noru_cli.main._run_npm_install_deterministic", return_value=ok), \
+         patch("noru_cli.main._desktop_build_needed", return_value=True), \
+         patch("noru_cli.main._write_desktop_build_stamp"), \
+         patch("noru_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("noru_cli.main.subprocess.run", side_effect=[ok, ok]) as mock_run, \
          pytest.raises(SystemExit):
         cli_main.cmd_gui(_ns(
             fake_boot=True,
@@ -113,7 +113,7 @@ def test_gui_exits_when_npm_missing(tmp_path, monkeypatch, capsys):
     root = _make_desktop_tree(tmp_path)
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
 
-    with patch("hermes_cli.main.shutil.which", return_value=None), \
+    with patch("noru_cli.main.shutil.which", return_value=None), \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -141,9 +141,9 @@ def test_gui_skip_build_launches_existing_packaged_app_without_npm(tmp_path, mon
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value=None), \
-         patch("hermes_cli.main._run_npm_install_deterministic") as mock_install, \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value=None), \
+         patch("noru_cli.main._run_npm_install_deterministic") as mock_install, \
+         patch("noru_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(skip_build=True))
 
@@ -162,8 +162,8 @@ def test_gui_linux_configures_sandbox_before_launch(tmp_path, monkeypatch):
     sandbox.chmod(0o755)
     ok = subprocess.CompletedProcess([], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
-         patch("hermes_cli.main.subprocess.run", return_value=ok) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
+         patch("noru_cli.main.subprocess.run", return_value=ok) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(skip_build=True))
 
@@ -183,8 +183,8 @@ def test_gui_linux_rejects_symlink_sandbox(tmp_path, monkeypatch):
     sandbox = packaged_exe.parent / "chrome-sandbox"
     sandbox.symlink_to(target)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
-         patch("hermes_cli.main.subprocess.run") as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
+         patch("noru_cli.main.subprocess.run") as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(skip_build=True))
 
@@ -211,8 +211,8 @@ def test_gui_linux_skips_fixup_when_already_configured(tmp_path, monkeypatch):
 
     launch_ok = subprocess.CompletedProcess([str(packaged_exe)], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/sudo"), \
+         patch("noru_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(skip_build=True))
 
@@ -231,11 +231,11 @@ def test_gui_source_mode_uses_renderer_build_and_electron(tmp_path, monkeypatch)
     build_ok = subprocess.CompletedProcess(["npm", "run", "build"], 0)
     launch_ok = subprocess.CompletedProcess(["npm", "exec", "--", "electron", "."], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok), \
-         patch("hermes_cli.main._desktop_build_needed", return_value=True), \
-         patch("hermes_cli.main._write_desktop_build_stamp"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[build_ok, launch_ok]) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("noru_cli.main._run_npm_install_deterministic", return_value=install_ok), \
+         patch("noru_cli.main._desktop_build_needed", return_value=True), \
+         patch("noru_cli.main._write_desktop_build_stamp"), \
+         patch("noru_cli.main.subprocess.run", side_effect=[build_ok, launch_ok]) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(source=True))
 
@@ -249,8 +249,8 @@ def test_gui_source_mode_uses_renderer_build_and_electron(tmp_path, monkeypatch)
 @pytest.mark.parametrize(
     "argv",
     [
-        ["hermes", "gui"],
-        ["hermes", "-m", "gpt5", "gui"],
+        ["noru", "gui"],
+        ["noru", "-m", "gpt5", "gui"],
     ],
 )
 def test_gui_is_known_builtin_for_plugin_gating(argv):
@@ -270,10 +270,10 @@ def test_desktop_build_stamp_skips_build_when_up_to_date(tmp_path, monkeypatch):
 
     launch_ok = subprocess.CompletedProcess([], 0)
 
-    with patch("hermes_cli.main._desktop_build_needed", return_value=False), \
-         patch("hermes_cli.main._run_npm_install_deterministic") as mock_install, \
-         patch("hermes_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
+    with patch("noru_cli.main._desktop_build_needed", return_value=False), \
+         patch("noru_cli.main._run_npm_install_deterministic") as mock_install, \
+         patch("noru_cli.main.subprocess.run", return_value=launch_ok) as mock_run, \
+         patch("noru_cli.main._desktop_macos_relaunchable_fixup"), \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns())
 
@@ -293,12 +293,12 @@ def test_desktop_force_build_overrides_stamp(tmp_path, monkeypatch):
     pack_ok = subprocess.CompletedProcess(["npm", "run", "pack"], 0)
     launch_ok = subprocess.CompletedProcess([], 0)
 
-    with patch("hermes_cli.main.shutil.which", return_value="/usr/bin/npm"), \
-         patch("hermes_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
-         patch("hermes_cli.main._desktop_build_needed", return_value=False), \
-         patch("hermes_cli.main._write_desktop_build_stamp") as mock_stamp, \
-         patch("hermes_cli.main._desktop_macos_relaunchable_fixup"), \
-         patch("hermes_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
+    with patch("noru_cli.main.shutil.which", return_value="/usr/bin/npm"), \
+         patch("noru_cli.main._run_npm_install_deterministic", return_value=install_ok) as mock_install, \
+         patch("noru_cli.main._desktop_build_needed", return_value=False), \
+         patch("noru_cli.main._write_desktop_build_stamp") as mock_stamp, \
+         patch("noru_cli.main._desktop_macos_relaunchable_fixup"), \
+         patch("noru_cli.main.subprocess.run", side_effect=[pack_ok, launch_ok]) as mock_run, \
          pytest.raises(SystemExit) as exc:
         cli_main.cmd_gui(_ns(force_build=True))
 
@@ -313,7 +313,7 @@ def test_compute_desktop_content_hash_stable(tmp_path, monkeypatch):
     """_compute_desktop_content_hash returns the same digest for identical trees."""
     root = _make_desktop_tree(tmp_path)
     (root / "apps" / "desktop" / "main.js").write_text("console.log('hi')", encoding="utf-8")
-    (root / "package.json").write_text('{"name":"hermes"}', encoding="utf-8")
+    (root / "package.json").write_text('{"name":"noru"}', encoding="utf-8")
     (root / "package-lock.json").write_text('{}', encoding="utf-8")
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
 

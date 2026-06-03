@@ -22,11 +22,11 @@ from tools.approval import (
 
 class TestApprovalModeParsing:
     def test_unquoted_yaml_off_boolean_false_maps_to_off(self):
-        with mock_patch("hermes_cli.config.load_config", return_value={"approvals": {"mode": False}}):
+        with mock_patch("noru_cli.config.load_config", return_value={"approvals": {"mode": False}}):
             assert _get_approval_mode() == "off"
 
     def test_string_off_still_maps_to_off(self):
-        with mock_patch("hermes_cli.config.load_config", return_value={"approvals": {"mode": "off"}}):
+        with mock_patch("noru_cli.config.load_config", return_value={"approvals": {"mode": "off"}}):
             assert _get_approval_mode() == "off"
 
 
@@ -364,17 +364,17 @@ class TestTeePattern:
         assert key is not None
 
     def test_tee_hermes_env(self):
-        dangerous, key, desc = detect_dangerous_command("echo x | tee ~/.hermes/.env")
+        dangerous, key, desc = detect_dangerous_command("echo x | tee ~/.noru/.env")
         assert dangerous is True
         assert key is not None
 
     def test_tee_custom_hermes_home_env(self):
-        dangerous, key, desc = detect_dangerous_command("echo x | tee $HERMES_HOME/.env")
+        dangerous, key, desc = detect_dangerous_command("echo x | tee $NORU_HOME/.env")
         assert dangerous is True
         assert key is not None
 
     def test_tee_quoted_custom_hermes_home_env(self):
-        dangerous, key, desc = detect_dangerous_command('echo x | tee "$HERMES_HOME/.env"')
+        dangerous, key, desc = detect_dangerous_command('echo x | tee "$NORU_HOME/.env"')
         assert dangerous is True
         assert key is not None
 
@@ -391,46 +391,46 @@ class TestTeePattern:
 
 class TestHermesConfigWriteProtection:
     """Terminal-side pairing for the file_tools write_file/patch deny on
-    ~/.hermes/config.yaml (#14639). config.yaml IS the security policy
+    ~/.noru/config.yaml (#14639). config.yaml IS the security policy
     (approvals.mode/yolo live there, mtime-keyed cache reloads mid-session),
     so a write_file deny without terminal-side coverage is unpaired theater.
     These pin every terminal write idiom against the config file."""
 
     def test_redirect_overwrite(self):
-        dangerous, key, desc = detect_dangerous_command("echo 'approvals:' > ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("echo 'approvals:' > ~/.noru/config.yaml")
         assert dangerous is True
         assert key is not None
 
     def test_append(self):
-        dangerous, key, desc = detect_dangerous_command("echo '  mode: off' >> ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("echo '  mode: off' >> ~/.noru/config.yaml")
         assert dangerous is True
 
     def test_tee(self):
-        dangerous, key, desc = detect_dangerous_command("echo x | tee ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("echo x | tee ~/.noru/config.yaml")
         assert dangerous is True
 
     def test_cp_over_config(self):
-        dangerous, key, desc = detect_dangerous_command("cp /tmp/evil.yaml ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("cp /tmp/evil.yaml ~/.noru/config.yaml")
         assert dangerous is True
 
     def test_sed_in_place(self):
         # The gap the pairing closes: sed -i mutates the file directly,
         # bypassing the redirection/tee patterns.
-        dangerous, key, desc = detect_dangerous_command("sed -i 's/manual/off/' ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("sed -i 's/manual/off/' ~/.noru/config.yaml")
         assert dangerous is True
         assert "hermes config" in desc.lower() or "in-place" in desc.lower()
 
     def test_sed_in_place_long_flag(self):
-        dangerous, key, desc = detect_dangerous_command("sed --in-place 's/manual/off/' ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("sed --in-place 's/manual/off/' ~/.noru/config.yaml")
         assert dangerous is True
 
     def test_custom_hermes_home(self):
-        dangerous, key, desc = detect_dangerous_command("echo x | tee $HERMES_HOME/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("echo x | tee $NORU_HOME/config.yaml")
         assert dangerous is True
 
     def test_read_is_safe(self):
         # Reading config is not a write — must not trip.
-        dangerous, key, desc = detect_dangerous_command("cat ~/.hermes/config.yaml")
+        dangerous, key, desc = detect_dangerous_command("cat ~/.noru/config.yaml")
         assert dangerous is False
 
     def test_normal_yaml_write_safe(self):
@@ -468,7 +468,7 @@ class TestSensitiveRedirectPattern:
     """Detect shell redirection writes to sensitive user-managed paths."""
 
     def test_redirect_to_custom_hermes_home_env(self):
-        dangerous, key, desc = detect_dangerous_command("echo x > $HERMES_HOME/.env")
+        dangerous, key, desc = detect_dangerous_command("echo x > $NORU_HOME/.env")
         assert dangerous is True
         assert key is not None
 
@@ -664,29 +664,29 @@ class TestGatewayProtection:
     """Prevent agents from starting the gateway outside systemd management."""
 
     def test_gateway_run_with_disown_detected(self):
-        cmd = "kill 1605 && cd ~/.hermes/hermes-agent && source venv/bin/activate && python -m hermes_cli.main gateway run --replace &disown; echo done"
+        cmd = "kill 1605 && cd ~/.noru/hermes-agent && source venv/bin/activate && python -m noru_cli.main gateway run --replace &disown; echo done"
         dangerous, key, desc = detect_dangerous_command(cmd)
         assert dangerous is True
         assert "systemctl" in desc
 
     def test_gateway_run_with_ampersand_detected(self):
-        cmd = "python -m hermes_cli.main gateway run --replace &"
+        cmd = "python -m noru_cli.main gateway run --replace &"
         dangerous, key, desc = detect_dangerous_command(cmd)
         assert dangerous is True
 
     def test_gateway_run_with_nohup_detected(self):
-        cmd = "nohup python -m hermes_cli.main gateway run --replace"
+        cmd = "nohup python -m noru_cli.main gateway run --replace"
         dangerous, key, desc = detect_dangerous_command(cmd)
         assert dangerous is True
 
     def test_gateway_run_with_setsid_detected(self):
-        cmd = "hermes_cli.main gateway run --replace &disown"
+        cmd = "noru_cli.main gateway run --replace &disown"
         dangerous, key, desc = detect_dangerous_command(cmd)
         assert dangerous is True
 
     def test_gateway_run_foreground_not_flagged(self):
         """Normal foreground gateway run (as in systemd ExecStart) is fine."""
-        cmd = "python -m hermes_cli.main gateway run --replace"
+        cmd = "python -m noru_cli.main gateway run --replace"
         dangerous, key, desc = detect_dangerous_command(cmd)
         assert dangerous is False
 

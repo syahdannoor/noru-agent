@@ -307,7 +307,7 @@ def test_init_env_args_uses_hermes_dotenv_for_empty_shell_env(monkeypatch):
 
     Regression: the disk fallback used to fire only on `value is None`, so a
     present-but-empty `MY_SECRET=""` skipped it and was forwarded as `-e
-    MY_SECRET=`, clobbering the correct value sitting in ~/.hermes/.env.
+    MY_SECRET=`, clobbering the correct value sitting in ~/.noru/.env.
     """
     env = _make_execute_only_env(["MY_SECRET"])
 
@@ -588,7 +588,7 @@ def _labels_in_run_args(run_args):
     }
 
 
-def test_run_command_tags_hermes_agent_label(monkeypatch):
+def test_run_command_tags_noru_agent_label(monkeypatch):
     """Every container hermes-agent starts must carry the hermes-agent=1 label
     so the orphan reaper (and external operators) can identify them with a
     single ``docker ps --filter label=hermes-agent=1`` call. Regression test
@@ -668,7 +668,7 @@ def test_labels_attribute_populated_after_init(monkeypatch):
     env = _make_dummy_env(task_id="abc")
 
     assert env._labels == {
-        "hermes-agent": "1",
+        "noru-agent": "1",
         "hermes-task-id": "abc",
         "hermes-profile": "default",
     }

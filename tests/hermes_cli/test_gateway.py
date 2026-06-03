@@ -1,11 +1,11 @@
-"""Tests for hermes_cli.gateway."""
+"""Tests for noru_cli.gateway."""
 
 import sys
 from types import ModuleType, SimpleNamespace
 
 import pytest
 
-import hermes_cli.gateway as gateway
+import noru_cli.gateway as gateway
 
 
 def _install_fake_gateway_run(monkeypatch, start_gateway):
@@ -17,10 +17,10 @@ def _install_fake_gateway_run(monkeypatch, start_gateway):
     # respawns. That helper writes to ``Path.home() / ".config/systemd/user
     # /hermes-gateway.service"`` and runs ``systemctl --user daemon-reload``
     # — both target the *real* user environment because the conftest only
-    # sandboxes ``HERMES_HOME``, not ``HOME``. Tests that drive
+    # sandboxes ``NORU_HOME``, not ``HOME``. Tests that drive
     # ``run_gateway()`` end-to-end with a fake ``start_gateway`` MUST stub
     # the refresh call too, or every run rewrites the developer's installed
-    # unit (baking in the test's pytest-tmp ``HERMES_HOME`` value, which
+    # unit (baking in the test's pytest-tmp ``NORU_HOME`` value, which
     # systemd then uses on the next boot — silently breaking the gateway
     # for the developer).
     monkeypatch.setattr(gateway, "supports_systemd_services", lambda: False)
@@ -68,7 +68,7 @@ def test_run_gateway_exits_nonzero_when_start_gateway_reports_failure(monkeypatc
 
 
 def test_run_gateway_refuses_root_in_official_docker(monkeypatch, tmp_path, capsys):
-    project_root = tmp_path / "opt" / "hermes"
+    project_root = tmp_path / "opt" / "noru"
     (project_root / "docker").mkdir(parents=True)
     (project_root / "docker" / "entrypoint.sh").write_text("#!/bin/sh\n")
 
@@ -284,7 +284,7 @@ def test_gateway_restart_on_windows_without_service_uses_detached_backend(monkey
     down. The Windows backend restarts via detached pythonw.exe even when no
     Scheduled Task / Startup item is installed.
     """
-    import hermes_cli.gateway_windows as gateway_windows
+    import noru_cli.gateway_windows as gateway_windows
 
     calls = []
 
@@ -312,7 +312,7 @@ def test_gateway_restart_on_windows_without_service_uses_detached_backend(monkey
 
 def test_gateway_restart_on_windows_preserves_failure_fallback(monkeypatch):
     """If the Windows backend cannot launch, keep the existing fallback."""
-    import hermes_cli.gateway_windows as gateway_windows
+    import noru_cli.gateway_windows as gateway_windows
 
     calls = []
 
@@ -723,4 +723,4 @@ class TestStopProfileGateway:
 def test_module_has_logger():
     """Verify module has a logger instance (regression guard for #27154)."""
     assert hasattr(gateway, "logger")
-    assert gateway.logger.name == "hermes_cli.gateway"
+    assert gateway.logger.name == "noru_cli.gateway"

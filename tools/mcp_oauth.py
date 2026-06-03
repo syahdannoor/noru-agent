@@ -48,7 +48,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
-from hermes_constants import secure_parent_dir
+from noru_constants import secure_parent_dir
 
 logger = logging.getLogger(__name__)
 
@@ -112,14 +112,14 @@ _USER_SKIPPED_SENTINEL = "__hermes_user_skipped__"
 def _get_token_dir() -> Path:
     """Return the directory for MCP OAuth token files.
 
-    Uses HERMES_HOME so each profile gets its own OAuth tokens.
-    Layout: ``HERMES_HOME/mcp-tokens/``
+    Uses NORU_HOME so each profile gets its own OAuth tokens.
+    Layout: ``NORU_HOME/mcp-tokens/``
     """
     try:
-        from hermes_constants import get_hermes_home
-        base = Path(get_hermes_home())
+        from noru_constants import get_noru_home
+        base = Path(get_noru_home())
     except ImportError:
-        base = Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes")))
+        base = Path(os.environ.get("NORU_HOME", str(Path.home() / ".hermes")))
     return base / "mcp-tokens"
 
 
@@ -220,9 +220,9 @@ class HermesTokenStorage:
 
     File layout::
 
-        HERMES_HOME/mcp-tokens/<server_name>.json         -- tokens
-        HERMES_HOME/mcp-tokens/<server_name>.client.json   -- client info
-        HERMES_HOME/mcp-tokens/<server_name>.meta.json     -- oauth server metadata
+        NORU_HOME/mcp-tokens/<server_name>.json         -- tokens
+        NORU_HOME/mcp-tokens/<server_name>.client.json   -- client info
+        NORU_HOME/mcp-tokens/<server_name>.meta.json     -- oauth server metadata
     """
 
     def __init__(self, server_name: str):

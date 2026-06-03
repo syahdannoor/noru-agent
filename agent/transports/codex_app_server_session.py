@@ -244,7 +244,7 @@ class CodexAppServerSession:
                 codex_bin=self._codex_bin, codex_home=self._codex_home
             )
         self._client.initialize(
-            client_name="hermes",
+            client_name="noru",
             client_title="Hermes Agent",
             client_version=_get_hermes_version(),
         )
@@ -841,6 +841,6 @@ def _get_hermes_version() -> str:
     try:
         from importlib.metadata import version
 
-        return version("hermes-agent")
+        return version("noru-agent")
     except Exception:  # pragma: no cover
         return "0.0.0"

@@ -19,7 +19,7 @@ hermes memory setup          # generic picker, choose Honcho from the list
 Or manually:
 ```bash
 hermes config set memory.provider honcho
-echo "HONCHO_API_KEY=***" >> ~/.hermes/.env
+echo "HONCHO_API_KEY=***" >> ~/.noru/.env
 ```
 
 > `hermes honcho setup` also works, but only **after** Honcho is the active
@@ -109,8 +109,8 @@ Config is read from the first file that exists:
 
 | Priority | Path | Scope |
 |----------|------|-------|
-| 1 | `$HERMES_HOME/honcho.json` | Profile-local (isolated Hermes instances) |
-| 2 | `~/.hermes/honcho.json` | Default profile (shared host blocks) |
+| 1 | `$NORU_HOME/honcho.json` | Profile-local (isolated Hermes instances) |
+| 2 | `~/.noru/honcho.json` | Default profile (shared host blocks) |
 | 3 | `~/.honcho/config.json` | Global (cross-app interop) |
 
 Host key is derived from the active Hermes profile: `hermes` (default) or `hermes_<profile>`.
@@ -221,11 +221,11 @@ Multiple Hermes profiles can share one workspace while maintaining separate AI i
 ```json
 {
   "apiKey": "***",
-  "workspace": "hermes",
+  "workspace": "noru",
   "peerName": "yourname",
   "hosts": {
-    "hermes": {
-      "aiPeer": "hermes",
+    "noru": {
+      "aiPeer": "noru",
       "recallMode": "hybrid",
       "sessionStrategy": "per-directory"
     },
@@ -328,15 +328,15 @@ Presets:
 ```json
 {
   "apiKey": "***",
-  "workspace": "hermes",
+  "workspace": "noru",
   "peerName": "username",
   "contextCadence": 2,
   "dialecticCadence": 3,
   "dialecticDepth": 2,
   "hosts": {
-    "hermes": {
+    "noru": {
       "enabled": true,
-      "aiPeer": "hermes",
+      "aiPeer": "noru",
       "recallMode": "hybrid",
       "observation": {
         "user": { "observeMe": true, "observeOthers": true },

@@ -35,7 +35,7 @@ def _restore_tool_and_agent_modules():
         if name in {"tools", "agent", "hermes_cli"}
         or name.startswith("tools.")
         or name.startswith("agent.")
-        or name.startswith("hermes_cli.")
+        or name.startswith("noru_cli.")
     }
     try:
         yield
@@ -48,10 +48,10 @@ def _install_fake_tools_package(*, credential_mounts=None):
     _reset_modules(("tools", "agent", "hermes_cli"))
 
     hermes_cli = types.ModuleType("hermes_cli")
-    hermes_cli.__path__ = []  # type: ignore[attr-defined]
+    noru_cli.__path__ = []  # type: ignore[attr-defined]
     sys.modules["hermes_cli"] = hermes_cli
-    sys.modules["hermes_cli.config"] = types.SimpleNamespace(
-        get_hermes_home=lambda: Path(tempfile.gettempdir()) / "hermes-home",
+    sys.modules["noru_cli.config"] = types.SimpleNamespace(
+        get_noru_home=lambda: Path(tempfile.gettempdir()) / "noru-home",
     )
 
     tools_package = types.ModuleType("tools")

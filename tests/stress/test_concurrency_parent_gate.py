@@ -35,10 +35,10 @@ WORKERS_RUN_DURATION_S = 8
 
 def run() -> int:
     home = tempfile.mkdtemp(prefix="hermes_parent_gate_stress_")
-    os.environ["HERMES_HOME"] = home
+    os.environ["NORU_HOME"] = home
     os.environ["HOME"] = home
 
-    from hermes_cli import kanban_db as kb
+    from noru_cli import kanban_db as kb
 
     kb.init_db()
 

@@ -24,7 +24,7 @@ except ImportError:
 from pathlib import Path
 from typing import Callable
 
-from hermes_constants import get_hermes_home
+from noru_constants import get_noru_home
 from tools.environments.base import _file_mtime_key
 
 logger = logging.getLogger(__name__)
@@ -233,7 +233,7 @@ class FileSyncManager:
             logger.debug("sync_back: no prior push state — skipping")
             return
 
-        lock_path = (hermes_home or get_hermes_home()) / ".sync.lock"
+        lock_path = (hermes_home or get_noru_home()) / ".sync.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
 
         last_exc: Exception | None = None
@@ -389,8 +389,8 @@ class FileSyncManager:
         Uses the existing file mapping to find a remote->host directory
         pair, then applies the same prefix substitution to the new file.
         For example, if the mapping has ``/root/.hermes/skills/a.md`` →
-        ``~/.hermes/skills/a.md``, a new remote file at
-        ``/root/.hermes/skills/b.md`` maps to ``~/.hermes/skills/b.md``.
+        ``~/.noru/skills/a.md``, a new remote file at
+        ``/root/.hermes/skills/b.md`` maps to ``~/.noru/skills/b.md``.
         """
         mapping = file_mapping if file_mapping is not None else []
         for host, remote in mapping:
