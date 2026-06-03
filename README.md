@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Noru Agent" width="100%">
+  <img src="https://github.com/syahdannoor/noru-agent/raw/main/assets/banner.png" alt="Noru Agent" width="100%">
 </p>
 
 # Noru Agent ⚡
