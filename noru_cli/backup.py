@@ -4,7 +4,7 @@ Backup and import commands for hermes CLI.
 `hermes backup` creates a zip archive of the entire ~/.noru/ directory
 (excluding the hermes-agent repo and transient files).
 
-`hermes import` restores from a backup zip, overlaying onto the current
+`noru import` restores from a backup zip, overlaying onto the current
 NORU_HOME root.
 """
 
@@ -142,11 +142,11 @@ def _format_size(nbytes: int) -> str:
 
 
 def run_backup(args) -> None:
-    """Create a zip backup of the Hermes home directory."""
+    """Create a zip backup of the Noru home directory."""
     hermes_root = get_default_hermes_root()
 
     if not hermes_root.is_dir():
-        print(f"Error: Hermes home directory not found at {hermes_root}")
+        print(f"Error: Noru home directory not found at {hermes_root}")
         sys.exit(1)
 
     # Determine output path
@@ -255,7 +255,7 @@ def run_backup(args) -> None:
         if len(errors) > 10:
             print(f"  ... and {len(errors) - 10} more")
 
-    print(f"\nRestore with: hermes import {out_path.name}")
+    print(f"\nRestore with: noru import {out_path.name}")
 
 
 # ---------------------------------------------------------------------------
@@ -350,7 +350,7 @@ def run_import(args) -> None:
 
         if (has_config or has_env) and not args.force:
             print()
-            print("Warning: Target directory already has Hermes configuration.")
+            print("Warning: Target directory already has Noru configuration.")
             print("Importing will overwrite existing files with backup contents.")
             print()
             try:
@@ -455,7 +455,7 @@ def run_import(args) -> None:
                 # noru_cli.profiles might not be available (fresh install)
                 if any(profiles_dir.iterdir()):
                     print(f"\n  Profiles detected but aliases could not be created.")
-                    print(f"  Run: hermes profile list  (after installing hermes)")
+                    print(f"  Run: noru profile list  (after installing noru)")
 
         # Guidance
         print()
@@ -469,7 +469,7 @@ def run_import(args) -> None:
             for pname in gw_profiles:
                 print(f"  hermes -p {pname} gateway install")
 
-        print("Done. Your Hermes configuration has been restored.")
+        print("Done. Your Noru configuration has been restored.")
 
 
 # ---------------------------------------------------------------------------
@@ -726,7 +726,7 @@ def restore_cron_jobs_if_emptied(
     Args:
         snapshot_id: The pre-update quick-snapshot id (from
             :func:`create_quick_snapshot`).
-        hermes_home: Override for the Hermes home directory (tests).
+        hermes_home: Override for the Noru home directory (tests).
 
     Returns:
         ``None`` when no action was taken (the common, healthy path). On a
@@ -1009,7 +1009,7 @@ def create_pre_migration_backup(
 
     Shares implementation with :func:`create_pre_update_backup` via
     ``_write_full_zip_backup`` — same exclusions, same SQLite safe-copy,
-    restorable with ``hermes import <archive>``.  Writes to
+    restorable with ``noru import <archive>``.  Writes to
     ``<NORU_HOME>/backups/pre-migration-<timestamp>.zip`` and auto-prunes
     old pre-migration backups.
 
@@ -1021,7 +1021,7 @@ def create_pre_migration_backup(
     if not hermes_root.is_dir():
         return None
 
-    # Reuses the shared backups/ directory so `hermes import` and the
+    # Reuses the shared backups/ directory so `noru import` and the
     # update-backup listing pick up pre-migration archives too.
     backup_dir = _pre_update_backup_dir(hermes_root)
     try:

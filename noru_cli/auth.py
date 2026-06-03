@@ -2938,7 +2938,7 @@ def login_spotify_command(args) -> None:
     print(f"Redirect URI: {redirect_uri}")
     print("Make sure this redirect URI is allow-listed in your Spotify app settings.")
     print()
-    print("Open this URL to authorize Hermes:")
+    print("Open this URL to authorize Noru:")
     print(authorize_url)
     print()
     print(f"Full setup guide: {SPOTIFY_DOCS_URL}")
@@ -3224,7 +3224,7 @@ def _print_loopback_ssh_hint(redirect_uri: str, *, docs_url: str | None = None) 
     print(divider)
     print("Remote session detected — SSH tunnel required")
     print(divider)
-    print(f"Hermes is waiting for the OAuth callback on {redirect_uri}")
+    print(f"Noru is waiting for the OAuth callback on {redirect_uri}")
     print("but your browser is on a different machine. Run this command")
     print("in a NEW terminal on your local machine BEFORE opening the URL:")
     print()
@@ -6243,9 +6243,9 @@ def _save_model_choice(model_id: str) -> None:
 
 def login_command(args) -> None:
     """Deprecated: use 'hermes model' or 'hermes setup' instead."""
-    print("The 'hermes login' command has been removed.")
-    print("Use 'hermes auth' to manage credentials,")
-    print("'hermes model' to select a provider, or 'hermes setup' for full setup.")
+    print("The 'noru login' command has been removed.")
+    print("Use 'noru auth' to manage credentials,")
+    print("'noru model' to select a provider, or 'hermes setup' for full setup.")
     raise SystemExit(0)
 
 
@@ -6269,7 +6269,7 @@ def _login_openai_codex(
             # the user "Login successful!".
             _resolved_key = existing.get("api_key", "")
             if isinstance(_resolved_key, str) and _resolved_key and not _codex_access_token_is_expiring(_resolved_key, 60):
-                print("Existing Codex credentials found in Hermes auth store.")
+                print("Existing Codex credentials found in Noru auth store.")
                 try:
                     reuse = input("Use existing credentials? [Y/n]: ").strip().lower()
                 except (EOFError, KeyboardInterrupt):
@@ -6290,7 +6290,7 @@ def _login_openai_codex(
         cli_tokens = _import_codex_cli_tokens()
         if cli_tokens:
             print("Found existing Codex CLI credentials at ~/.codex/auth.json")
-            print("Hermes will create its own session to avoid conflicts with Codex CLI / VS Code.")
+            print("Noru will create its own session to avoid conflicts with Codex CLI / VS Code.")
             try:
                 do_import = input("Import these credentials? (a separate login is recommended) [y/N]: ").strip().lower()
             except (EOFError, KeyboardInterrupt):
@@ -6301,14 +6301,14 @@ def _login_openai_codex(
                 config_path = _update_config_for_provider("openai-codex", base_url)
                 print()
                 print("Credentials imported. Note: if Codex CLI refreshes its token,")
-                print("Hermes will keep working independently with its own session.")
+                print("Noru will keep working independently with its own session.")
                 print(f"  Config updated: {config_path} (model.provider=openai-codex)")
                 return
 
     # Run a fresh device code flow — Hermes gets its own OAuth session
     print()
     print("Signing in to OpenAI Codex...")
-    print("(Hermes creates its own session — won't affect Codex CLI or VS Code)")
+    print("(Noru creates its own session — won't affect Codex CLI or VS Code)")
     print()
 
     creds = _codex_device_code_login()
@@ -6336,7 +6336,7 @@ def _login_xai_oauth(
             existing = resolve_xai_oauth_runtime_credentials()
             api_key = existing.get("api_key", "")
             if isinstance(api_key, str) and api_key and not _xai_access_token_is_expiring(api_key, 60):
-                print("Existing xAI OAuth credentials found in Hermes auth store.")
+                print("Existing xAI OAuth credentials found in Noru auth store.")
                 try:
                     reuse = input("Use existing credentials? [Y/n]: ").strip().lower()
                 except (EOFError, KeyboardInterrupt):
@@ -6355,7 +6355,7 @@ def _login_xai_oauth(
 
     print()
     print("Signing in to xAI Grok OAuth (SuperGrok / Premium+)...")
-    print("(Hermes creates its own local OAuth session)")
+    print("(Noru creates its own local OAuth session)")
     print()
 
     timeout_seconds = float(getattr(args, "timeout", None) or 20.0)
@@ -6581,7 +6581,7 @@ def _xai_oauth_loopback_login(
             nonce=nonce,
         )
 
-        print("Open this URL to authorize Hermes with xAI:")
+        print("Open this URL to authorize Noru with xAI:")
         print(authorize_url)
         callback = _prompt_manual_callback_paste(redirect_uri)
     else:
@@ -6600,7 +6600,7 @@ def _xai_oauth_loopback_login(
                 nonce=nonce,
             )
 
-            print("Open this URL to authorize Hermes with xAI:")
+            print("Open this URL to authorize Noru with xAI:")
             print(authorize_url)
             print()
             print(f"Waiting for callback on {redirect_uri}")
@@ -7031,7 +7031,7 @@ def _minimax_oauth_login(
     if _is_remote_session():
         open_browser = False
 
-    print(f"Starting Hermes login via MiniMax ({region}) OAuth...")
+    print(f"Starting Noru login via MiniMax ({region}) OAuth...")
     print(f"Portal: {portal_base_url}")
 
     with httpx.Client(timeout=httpx.Timeout(timeout_seconds),
@@ -7339,7 +7339,7 @@ def _nous_device_code_login(
     if _is_remote_session():
         open_browser = False
 
-    print(f"Starting Hermes login via {pconfig.name}...")
+    print(f"Starting Noru login via {pconfig.name}...")
     print(f"Portal: {portal_base_url}")
     if insecure:
         print("TLS verification: disabled (--insecure)")
@@ -7431,7 +7431,7 @@ def _nous_device_code_login(
             print(message)
             print(f"  Subscribe here: {portal_url}/billing")
             print()
-            print("After subscribing, run `hermes model` again to finish setup.")
+            print("After subscribing, run `noru model` again to finish setup.")
             raise SystemExit(1)
         raise
 
@@ -7618,7 +7618,7 @@ def _login_nous(args, pconfig: ProviderConfig) -> None:
                 _save_auth_store(auth_store)
             print()
             print("No provider change. Nous credentials saved for future use.")
-            print("  Run `hermes model` again to switch to Nous Portal.")
+            print("  Run `noru model` again to switch to Nous Portal.")
             return
 
         config_path = _update_config_for_provider(
@@ -7660,9 +7660,9 @@ def logout_command(args) -> None:
             _reset_config_provider()
         print(f"Logged out of {provider_name}.")
         if should_reset_config and os.getenv("OPENROUTER_API_KEY"):
-            print("Hermes will use OpenRouter for inference.")
+            print("Noru will use OpenRouter for inference.")
         elif should_reset_config:
-            print("Run `hermes model` or configure an API key to use Hermes.")
+            print("Run `hermes model` or configure an API key to use Noru.")
         else:
             print("Model provider configuration was unchanged.")
     else:
