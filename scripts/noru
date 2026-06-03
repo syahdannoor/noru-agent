@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Noru Agent CLI wrapper for Git Bash on Windows
+# Usage: noru [commands...]
+
+export NORU_HOME="${NORU_HOME:-$HOME/AppData/Local/noru}"
+NORU_REPO="$HOME/AppData/Local/noru/hermes-agent"
+
+if [ -d "$NORU_REPO/venv" ]; then
+    source "$NORU_REPO/venv/Scripts/activate" 2>/dev/null
+fi
+
+PYTHONPATH="$NORU_REPO:$PYTHONPATH" exec python3 -m noru_cli.main "$@"
