@@ -1,0 +1,27 @@
+name: noru-dark
+display_name: Noru Dark
+description: Dark theme for Noru Agent
+
+banner:
+  title: "⚡ Noru Agent"
+  subtitle: "self-improving AI agent — fork of Hermes Agent"
+  divider_color: cyan
+  title_color: bright_cyan
+  subtitle_color: bright_white
+
+colors:
+  system: bright_cyan
+  user: bright_green
+  assistant: bright_magenta
+  tool: bright_white
+  error: bright_red
+  warning: bright_yellow
+  info: bright_blue
+
+spinner:
+  faces:
+    - " ●"
+    - " ◎"
+    - " ◉"
+  verb: "Noru-ing"
+  wing_right: " ⚡"

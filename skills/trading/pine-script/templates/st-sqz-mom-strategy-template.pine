@@ -1,0 +1,182 @@
+//@version=6
+strategy(title = "ST_SQZMOM_SMC Strategy V6.0a", overlay = true, max_labels_count = 500,
+     initial_capital = 1000, default_qty_type = strategy.percent_of_equity, default_qty_value = 5,
+     commission_type = strategy.commission.percent, commission_value = 0.04)
+
+// ==========================================================================================
+// TEMPLATE: Indicator → Strategy Conversion
+// ==========================================================================================
+
+// --- INPUTS ---
+length = input.int(10, 'ATR Length', minval = 1, group = 'Supertrend')
+minMult = input.int(2, 'Factor Range', minval = 0, inline = 'factor')
+maxMult = input.int(4, '', minval = 0, inline = 'factor')
+step = input.float(0.5, 'Step', minval = 0, step = 0.1)
+perfAlpha = input.float(2048, 'Performance Memory', minval = 2, group = 'Supertrend')
+fromCluster = input.string('Best', 'From Cluster', options = ['Best', 'Average', 'Worst'], group = 'Supertrend')
+maxIter = input.int(200, 'Maximum Iteration Steps', minval = 0, group = 'Optimization')
+maxData = input.int(5000, 'Historical Bars Calculation', minval = 0, group = 'Optimization')
+
+sources = input(close, 'Source', group = 'SQZMOM')
+bbLength = input.int(20, 'BB Length', minval = 1, group = 'SQZMOM')
+bbMult = input.float(2, 'BB MultFactor', step = 0.25, group = 'SQZMOM')
+kcLength = input(20, 'KC Length', group = 'SQZMOM')
+kcMult = input.float(1.5, 'KC MultFactor', step = 0.25, group = 'SQZMOM')
+useTrueRange = input(true, 'Use TrueRange', group = 'SQZMOM')
+signalLength = input(5, 'Signal Length', group = 'SQZMOM')
+atrThreshold = input.bool(true, 'ATR as Threshold', group = 'SQZMOM')
+
+lengthMA1 = input.int(9, title="EMA Fast", group = 'MA')
+lengthMA2 = input.int(21, title="EMA Slow", group = 'MA')
+addsave = input.bool(true, 'Add MA Filter', group = 'MA')
+
+targetMultiplier1 = input.int(1, 'TP1 (1:1)', minval = 1, group = 'TP/SL')
+stopLossMultiplier = input.int(3, 'SL (ATR×)', minval = 1, group = 'TP/SL')
+
+// --- TYPES ---
+type supertrend
+    float upper = hl2
+    float lower = hl2
+    float output
+    float perf = 0
+    float factor
+    int trend = 0
+
+type vector
+    array<float> out
+
+// --- VARS ---
+var holder = array.new<supertrend>(0)
+var factors = array.new<float>(0)
+
+// --- INIT ---
+if barstate.isfirst
+    for i = 0 to int((maxMult - minMult) / step) by 1
+        factors.push(minMult + i * step)
+        holder.push(supertrend.new())
+
+atr = ta.atr(length)
+
+// --- SUPERTREND (multi-factor) ---
+k = 0
+for factor in factors
+    get_spt = holder.get(k)
+    up = hl2 + atr * factor
+    dn = hl2 - atr * factor
+    get_spt.trend := close > get_spt.upper ? 1 : close < get_spt.lower ? 0 : get_spt.trend
+    get_spt.upper := close[1] < get_spt.upper ? math.min(up, get_spt.upper) : up
+    get_spt.lower := close[1] > get_spt.lower ? math.max(dn, get_spt.lower) : dn
+    diff = nz(math.sign(close[1] - get_spt.output))
+    get_spt.perf := get_spt.perf + 2 / (perfAlpha + 1) * (nz(close - close[1]) * diff - get_spt.perf)
+    get_spt.output := get_spt.trend == 1 ? get_spt.lower : get_spt.upper
+    get_spt.factor := factor
+    k := k + 1
+
+// --- K-MEANS CLUSTERING ---
+factor_array = array.new<float>(0)
+data = array.new<float>(0)
+if last_bar_index - bar_index <= maxData
+    for element in holder
+        data.push(element.perf)
+        factor_array.push(element.factor)
+centroids = array.new<float>(0)
+centroids.push(data.percentile_linear_interpolation(25))
+centroids.push(data.percentile_linear_interpolation(50))
+centroids.push(data.percentile_linear_interpolation(75))
+var array<vector> factors_clusters = na
+var array<vector> perfclusters = na
+if last_bar_index - bar_index <= maxData
+    for _ = 0 to maxIter by 1
+        factors_clusters := array.from(vector.new(array.new<float>(0)), vector.new(array.new<float>(0)), vector.new(array.new<float>(0)))
+        perfclusters := array.from(vector.new(array.new<float>(0)), vector.new(array.new<float>(0)), vector.new(array.new<float>(0)))
+        i = 0
+        for value in data
+            dist = array.new<float>(0)
+            for centroid in centroids
+                dist.push(math.abs(value - centroid))
+            idx = dist.indexof(dist.min())
+            perfclusters.get(idx).out.push(value)
+            factors_clusters.get(idx).out.push(factor_array.get(i))
+            i := i + 1
+        new_centroids = array.new<float>(0)
+        for cluster_ in perfclusters
+            new_centroids.push(cluster_.out.avg())
+        if new_centroids.get(0) == centroids.get(0) and new_centroids.get(1) == centroids.get(1) and new_centroids.get(2) == centroids.get(2)
+            break
+        centroids := new_centroids
+
+from = switch fromCluster
+    'Best' => 2
+    'Average' => 1
+    'Worst' => 0
+
+var float target_factor = na
+var float perf_idx = na
+den = ta.ema(math.abs(close - close[1]), int(perfAlpha))
+if not na(perfclusters)
+    target_factor := nz(factors_clusters.get(from).out.avg(), target_factor)
+    perf_idx := math.max(nz(perfclusters.get(from).out.avg()), 0) / den
+
+var upper = hl2
+var lower = hl2
+var os = 0
+up = hl2 + atr * target_factor
+dn = hl2 - atr * target_factor
+upper := close[1] < upper ? math.min(up, upper) : up
+lower := close[1] > lower ? math.max(dn, lower) : dn
+os := close > upper ? 1 : close < lower ? 0 : os
+ts = bool(os) ? lower : upper
+
+// --- SQZMOM ---
+basis = ta.sma(sources, bbLength)
+dev = bbMult * ta.stdev(sources, bbLength)
+bbUpper = basis + dev
+bbLower = basis - dev
+ma = ta.sma(sources, kcLength)
+trRange = useTrueRange ? ta.tr : (high - low)
+rangema = ta.sma(trRange, kcLength)
+kcUpper = ma + rangema * kcMult
+kcLower = ma - rangema * kcMult
+sqzOn = (bbLower > kcLower) and (bbUpper < kcUpper)
+sqzOff = (bbLower < kcLower) and (bbUpper > kcUpper)
+highH = ta.highest(high, kcLength)
+lowL = ta.lowest(low, kcLength)
+aveVal = math.avg(highH, lowL)
+val = ta.linreg(sources - math.avg(aveVal, ta.sma(sources, kcLength)), kcLength, 0)
+signal = ta.sma(val, signalLength)
+dir = val - signal
+
+// --- MA ---
+MA1 = ta.ema(sources, lengthMA1)
+MA2 = ta.ema(sources, lengthMA2)
+saveEntryBuy = addsave ? MA2 < MA1 : false
+saveEntrySell = addsave ? MA2 > MA1 : false
+
+// --- SIGNALS ---
+upTrend = os == 1
+downTrend = os == 0
+upperThreshold = atrThreshold ? atr[1] : upThreshold
+lowerThreshold = atrThreshold ? -atr[1] : lowThreshold
+triangUp = sqzOff and dir > dir[1] and dir >= upperThreshold
+triangDown = sqzOff and dir < dir[1] and dir <= lowerThreshold
+buyCondition = upTrend and triangUp and (saveEntryBuy or not addsave)
+sellCondition = downTrend and triangDown and (saveEntrySell or not addsave)
+
+// --- STRATEGY ---
+if buyCondition
+    strategy.entry("Long", strategy.long)
+    strategy.exit("XL", "Long",
+         limit = strategy.position_avg_price + (atr * targetMultiplier1),
+         stop = strategy.position_avg_price - (atr * stopLossMultiplier))
+if sellCondition
+    strategy.entry("Short", strategy.short)
+    strategy.exit("XS", "Short",
+         limit = strategy.position_avg_price - (atr * targetMultiplier1),
+         stop = strategy.position_avg_price + (atr * stopLossMultiplier))
+
+// --- PLOTS ---
+plot(ts, 'ST', os != os[1] ? na : upTrend ? color.teal : color.red, style = plot.style_stepline_diamond)
+plot(MA1, 'EMA9', color.rgb(0, 255, 255), linewidth = 1)
+plot(MA2, 'EMA21', color.rgb(255, 192, 203), linewidth = 1)
+plotshape(buyCondition, 'Buy', shape.triangleup, location.belowbar, color.green, size = size.small)
+plotshape(sellCondition, 'Sell', shape.triangledown, location.abovebar, color.red, size = size.small)

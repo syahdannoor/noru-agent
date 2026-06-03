@@ -1,0 +1,198 @@
+//@version=6
+strategy(title="ST_SQZMOM_SMC V6.0a", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=5, pyramiding=0, commission_value=0.03, commission_type=strategy.commission.percent)
+
+import LudoGH68/Drawings_public/1 as d
+
+// ===== SUPERTREND INPUTS =====
+length = input.int(10, 'ATR Length', minval=1, group='ST')
+minMult = input.int(2, 'Factor Min', minval=0, group='ST')
+maxMult = input.int(4, 'Factor Max', minval=0, group='ST')
+step = input.float(0.5, 'Step', minval=0, step=0.1, group='ST')
+perfAlpha = input.float(2048, 'Perf Memory', minval=2, group='ST')
+fromCluster = input.string('Best', 'Cluster', options=['Best','Average','Worst'], group='ST')
+maxIter = input.int(200, 'Max Iter', minval=0, group='Opt')
+maxData = input.int(1000, 'Hist Bars', minval=0, group='Opt')
+
+// ===== SQZMOM INPUTS =====
+src = input(close, 'Source', group='SQZ')
+bbLen = input.int(20, 'BB Len', minval=1, group='SQZ')
+bbM = input.float(2, 'BB Mult', step=0.25, group='SQZ')
+kcLen = input(20, 'KC Len', group='SQZ')
+kcM = input.float(1.5, 'KC Mult', step=0.25, group='SQZ')
+useTR = input(true, 'Use TR', group='SQZ')
+addSig = input.bool(false, 'Val-Signal', group='SQZ')
+sigLen = input(5, 'Sig Len', group='SQZ')
+upTh = input(0.0001, 'Upper Th', group='SQZ')
+loTh = input(-0.0001, 'Lower Th', group='SQZ')
+atrTh = input.bool(true, 'ATR Th', group='SQZ')
+
+// ===== MA INPUTS =====
+lenMA1 = input.int(9, 'EMA9', group='MA')
+lenMA2 = input.int(21, 'EMA21', group='MA')
+lenMA3 = input.int(200, 'EMA200', group='MA')
+showMA = input.bool(true, 'Show MA', group='MA')
+useMA = input.bool(true, 'MA Filter', group='Filters')
+
+// ===== TP/SL =====
+tp1 = input.int(1, 'TP1 ATR', minval=1, group='TP/SL')
+tp2 = input.int(3, 'TP2 ATR', minval=2, group='TP/SL')
+tp3 = input.int(5, 'TP3 ATR', minval=3, group='TP/SL')
+sl = input.int(3, 'SL ATR', minval=1, group='TP/SL')
+
+// ===== ST CALC =====
+type st; float u=hl2; float l=hl2; float o; float p=0; float f; int t=0
+type vc; array<float> out
+
+var h = array.new<st>(0); var fa = array.new<float>(0)
+
+if barstate.isfirst
+    for i = 0 to int((maxMult-minMult)/step)
+        fa.push(minMult+i*step); h.push(st.new())
+
+atr = ta.atr(length); k = 0
+for f in fa
+    s = h.get(k)
+    up = hl2 + atr*f; dn = hl2 - atr*f
+    s.t := close > s.u ? 1 : close < s.l ? 0 : s.t
+    s.u := close[1] < s.u ? math.min(up,s.u) : up
+    s.l := close[1] > s.l ? math.max(dn,s.l) : dn
+    d = nz(math.sign(close[1]-s.o))
+    s.p := s.p + 2/(perfAlpha+1)*(nz(close-close[1])*d-s.p)
+    s.o := s.t==1?s.l:s.u; s.f := f; k:=k+1
+
+// K-means clustering
+fa2 = array.new<float>(0); da = array.new<float>(0)
+if last_bar_index-bar_index<=maxData
+    for e in h; da.push(e.p); fa2.push(e.f)
+
+ct = array.new<float>(0)
+ct.push(da.percentile_linear_interpolation(25))
+ct.push(da.percentile_linear_interpolation(50))
+ct.push(da.percentile_linear_interpolation(75))
+
+var array<vc> fc=na; var array<vc> pc=na
+if last_bar_index-bar_index<=maxData
+    for _=0 to maxIter
+        fc:=array.from(vc.new(array.new<float>(0)),vc.new(array.new<float>(0)),vc.new(array.new<float>(0)))
+        pc:=array.from(vc.new(array.new<float>(0)),vc.new(array.new<float>(0)),vc.new(array.new<float>(0)))
+        i=0
+        for v in da
+            di=array.new<float>(0)
+            for c in ct; di.push(math.abs(v-c))
+            idx=di.indexof(di.min())
+            pc.get(idx).out.push(v); fc.get(idx).out.push(fa2.get(i)); i:=i+1
+        nc=array.new<float>(0)
+        for c_ in pc; nc.push(c_.out.avg())
+        if nc.get(0)==ct.get(0) and nc.get(1)==ct.get(1) and nc.get(2)==ct.get(2); break
+        ct:=nc
+
+fd = switch fromCluster; 'Best'=>2; 'Average'=>1; 'Worst'=>0
+var float tf=na
+de = ta.ema(math.abs(close-close[1]),int(perfAlpha))
+if not na(pc); tf:=nz(fc.get(fd).out.avg(),tf)
+
+var float uST=hl2; var float lST=hl2; var int os=0
+upST=hl2+atr*tf; dnST=hl2-atr*tf
+uST:=close[1]<uST?math.min(upST,uST):upST
+lST:=close[1]>lST?math.max(dnST,lST):dnST
+os:=close>uST?1:close<lST?0:os
+ts=bool(os)?lST:uST
+
+// ===== SQZMOM CALC =====
+basis = ta.sma(src, bbLen); dev = bbM * ta.stdev(src, bbLen)
+bbU = basis + dev; bbL = basis - dev
+
+maKC = ta.sma(src, kcLen); trR = useTR ? ta.tr : (high-low)
+rma = ta.sma(trR, kcLen)
+kcU = maKC + rma * kcM; kcL = maKC - rma * kcM
+
+sqzOn = (bbL > kcL) and (bbU < kcU)
+sqzOff = (bbL < kcL) and (bbU > kcU)
+noSqz = not sqzOn and not sqzOff
+
+hiH = ta.highest(high, kcLen); loL = ta.lowest(low, kcLen)
+avV = math.avg(hiH, loL)
+val = ta.linreg(src - math.avg(avV, ta.sma(src, kcLen)), kcLen, 0)
+sig = ta.sma(val, sigLen); dir = not addSig ? val : val - sig
+
+// ===== MA =====
+MA1 = ta.ema(src, lenMA1); MA2 = ta.ema(src, lenMA2); MA3 = ta.ema(src, lenMA3)
+buyF = useMA ? MA2 < MA1 : false; sellF = useMA ? MA2 > MA1 : false
+
+// ===== ENTRY CONDITIONS =====
+upT = os == 1; dnT = os == 0
+uTh = atrTh ? atr[1] : upTh; lTh = atrTh ? -atr[1] : loTh
+trUp = sqzOff and dir > dir[1] and dir >= uTh
+trDn = sqzOff and dir < dir[1] and dir <= lTh
+long = upT and trUp and (buyF or not useMA)
+short = dnT and trDn and (sellF or not useMA)
+
+// ===== EXECUTION =====
+if long
+    strategy.entry('L', strategy.long)
+    strategy.exit('LX', 'L', limit=close+atr*tp1, stop=close-atr*sl)
+
+if short
+    strategy.entry('S', strategy.short)
+    strategy.exit('SX', 'S', limit=close-atr*tp1, stop=close+atr*sl)
+
+// ===== SMC STRUCTURES (visual) =====
+gLS(o) => o=='┈'?line.style_dotted:o=='╌'?line.style_dashed:line.style_solid
+gHB(lb) =>
+    var int idx=0; int sb=bar_index>lb?lb:bar_index+1
+    int mB=ta.highestbars(high,sb)
+    for i=0 to lb-1
+        if high[i+1]>high[i+2] and high[i]<=high[i+1] and (i+1)*-1>=mB; idx:=(i+1)*-1
+    idx:=idx==0?mB:idx
+gLB(lb) =>
+    var int idx=0; int sb=bar_index>lb?lb:bar_index+1
+    int mB=ta.lowestbars(low,sb)
+    for i=0 to lb-1
+        if low[i+1]<low[i+2] and low[i]>=low[i+1] and (i+1)*-1>=mB; idx:=(i+1)*-1
+    idx:=idx==0?mB:idx
+
+var float sH=0; var float sL=0
+var int sHi=0; var int sLi=0; var int sD=0
+if bar_index==0; sHi:=bar_index; sLi:=bar_index; sH:=high; sL:=low
+
+smB=bar_index+gHB(10); smB2=bar_index+gLB(10)
+lB=close<sL and close[1]>=sL and bar_index[1]>sLi or sD==2 and close<sL
+hB=close>sH and close[1]<=sH and bar_index[1]>sHi or sD==1 and close>sH
+
+var array<line> sLArr=array.new_line(0); var array<label> sLbl=array.new_label(0)
+
+if lB
+    if array.size(sLArr)>=15; d.delete_line(array.get(sLArr,0),array.get(sLbl,0)); array.remove(sLbl,0); array.remove(sLArr,0)
+    c=sD==2?color.silver:color.yellow; t=sD==2?'BOS':'CHoCH'
+    array.push(sLArr,line.new(sLi,sL,bar_index,sL,xloc.bar_index,color=c,width=1))
+    array.push(sLbl,label.new((bar_index+sLi)/2,sL,text=t,style=label.style_none,textcolor=c))
+    sD:=1; sHi:=smB; sLi:=bar_index; sH:=high[bar_index-sHi]; sL:=low
+else if hB
+    if array.size(sLArr)>=15; d.delete_line(array.get(sLArr,0),array.get(sLbl,0)); array.remove(sLbl,0); array.remove(sLArr,0)
+    c=sD==1?color.silver:color.yellow; t=sD==1?'BOS':'CHoCH'
+    array.push(sLArr,line.new(sHi,sH,bar_index,sH,xloc.bar_index,color=c,width=1))
+    array.push(sLbl,label.new((bar_index+sHi)/2,sH,text=t,style=label.style_none,textcolor=c))
+    sD:=2; sHi:=bar_index; sLi:=smB2; sH:=high; sL:=low[bar_index-sLi]
+else
+    if high>sH and (sD==0 or sD==2); sH:=high; sHi:=bar_index
+    else if low<sL and (sD==0 or sD==1); sL:=low; sLi:=bar_index
+
+// ===== FVG =====
+if high[3]<low[1]
+    box.new(bar_index-2,low[1],bar_index[1],high[3],border_width=1,bgcolor=color.new(color.green,50),border_color=color.new(color.green,100))
+if low[3]>high[1]
+    box.new(bar_index-2,low[3],bar_index[1],high[1],border_width=1,bgcolor=color.new(color.red,50),border_color=color.new(color.red,100))
+
+// ===== PLOTS =====
+cs=bool(os)?color.teal:color.red
+plot(ts,'ST',os!=os[1]?na:cs,style=plot.style_stepline_diamond)
+plot(showMA?MA1:na,'EMA9',color.cyan,linewidth=1)
+plot(showMA?MA2:na,'EMA21',color.pink,linewidth=1)
+plot(showMA?MA3:na,'EMA200',color.gray,linewidth=1)
+plotshape(long,'Long',shape.triangleup,location.belowbar,color.green,size=size.small)
+plotshape(short,'Short',shape.triangledown,location.abovebar,color.red,size=size.small)
+
+// ===== ALERTS =====
+alertcondition(long,'L Entry','{{ticker}} {{interval}} LONG {{close}}')
+alertcondition(short,'S Entry','{{ticker}} {{interval}} SHORT {{close}}')
+alertcondition(lB or hB,'Struct Break','{{ticker}} {{interval}} STRUCT {{close}}')

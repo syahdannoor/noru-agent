@@ -1,0 +1,28 @@
+# Default Noru Agent configuration
+# Generated during install — customize via `noru config` or edit this file.
+
+model:
+  default: "9routers"
+  provider: "custom"
+  base_url: "http://127.0.0.1:20128/v1"
+
+agent:
+  personality: nassim-taleb
+  # Auto-load Noru's core identity on every session
+  skills_autoload:
+    - noru-core-knowledge
+    - identity-noru
+    - smart-money
+
+display:
+  skin: noru-dark
+
+auxiliary:
+  vision:
+    provider: openrouter
+    model: openai/gpt-4o
+
+delegation:
+  model: "9routers"
+  provider: "custom"
+  base_url: "http://127.0.0.1:20128/v1"
